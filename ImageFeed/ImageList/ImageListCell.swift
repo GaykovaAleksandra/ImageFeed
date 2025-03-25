@@ -11,4 +11,9 @@ final class ImageListCell: UITableViewCell {
     
     @IBOutlet weak var likeButton: UIButton!
     @IBOutlet weak var dateLabel: UILabel!
+    @IBOutlet weak var cellImageView: UIImageView!
+    
+    func configure(with image: UIImage?) {
+        cellImageView.image = image
+    }
 }

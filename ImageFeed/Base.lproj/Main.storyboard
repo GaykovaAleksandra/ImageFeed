@@ -68,6 +68,7 @@
                                         </tableViewCellContentView>
                                         <color key="backgroundColor" name="YP Black"/>
                                         <connections>
+                                            <outlet property="cellImageView" destination="JJH-03-SOA" id="edq-mV-P5b"/>
                                             <outlet property="dateLabel" destination="oLV-RZ-B6g" id="AEK-Od-gLg"/>
                                             <outlet property="likeButton" destination="KvB-Zw-FoL" id="nNI-YJ-JI7"/>
                                         </connections>
