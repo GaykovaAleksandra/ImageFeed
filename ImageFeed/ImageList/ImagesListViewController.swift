@@ -11,6 +11,7 @@ final class ImagesListViewController: UIViewController {
     @IBOutlet private var tableView: UITableView!
     
     private let photosName: [String] = Array(0..<20).map{ "\($0)" }
+    private let currentDate = Date()
     
     override func viewDidLoad() {
         super.viewDidLoad()
@@ -29,14 +30,9 @@ final class ImagesListViewController: UIViewController {
     
     func configCell(for cell: ImageListCell, with indexPath: IndexPath) {
         let photo = photosName[indexPath.row]
-        guard let image = UIImage(named: photo) else {
-            cell.configure(with: nil)
-            return
-        }
+        guard let image = UIImage(named: photo) else { return}
         
-        cell.configure(with: image)
-        
-        let currentDate = Date()
+        cell.cellImageView.image = image
         cell.dateLabel.text = dateFormatter.string(from: currentDate)
         
         if indexPath.row % 2 == 0 {
