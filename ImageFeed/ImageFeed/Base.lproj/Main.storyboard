@@ -9,15 +9,15 @@
         <capability name="documents saved in the Xcode 8 format" minToolsVersion="8.0"/>
     </dependencies>
     <scenes>
-        <!--View Controller-->
+        <!--Profile View Controller-->
         <scene sceneID="vsV-bL-Yxu">
             <objects>
-                <viewController id="dM3-BK-DWF" sceneMemberID="viewController">
+                <viewController id="dM3-BK-DWF" customClass="ProfileViewController" customModule="ImageFeed" customModuleProvider="target" sceneMemberID="viewController">
                     <view key="view" contentMode="scaleToFill" id="X0k-Av-wTP">
                         <rect key="frame" x="0.0" y="0.0" width="393" height="852"/>
                         <autoresizingMask key="autoresizingMask" widthSizable="YES" heightSizable="YES"/>
                         <subviews>
-                            <button opaque="NO" contentMode="scaleToFill" contentHorizontalAlignment="center" contentVerticalAlignment="center" buttonType="system" lineBreakMode="middleTruncation" translatesAutoresizingMaskIntoConstraints="NO" id="V4X-Sx-DPH" userLabel="Exit Button">
+                            <button opaque="NO" contentMode="scaleToFill" contentHorizontalAlignment="center" contentVerticalAlignment="center" buttonType="system" lineBreakMode="middleTruncation" translatesAutoresizingMaskIntoConstraints="NO" id="V4X-Sx-DPH" userLabel="Logout Button">
                                 <rect key="frame" x="333" y="104" width="44" height="44"/>
                                 <constraints>
                                     <constraint firstAttribute="width" constant="44" id="0Qe-2n-7Pc"/>
@@ -25,6 +25,9 @@
                                 </constraints>
                                 <inset key="imageEdgeInsets" minX="0.0" minY="0.0" maxX="2.2250738585072014e-308" maxY="0.0"/>
                                 <state key="normal" title=" " image="Exit"/>
+                                <connections>
+                                    <action selector="didTapLogoutButton:" destination="dM3-BK-DWF" eventType="touchUpInside" id="pEp-Hf-dNl"/>
+                                </connections>
                             </button>
                             <label opaque="NO" userInteractionEnabled="NO" contentMode="left" horizontalHuggingPriority="251" verticalHuggingPriority="251" text="Екатерина Новикова" textAlignment="natural" lineBreakMode="tailTruncation" baselineAdjustment="alignBaselines" adjustsFontSizeToFit="NO" translatesAutoresizingMaskIntoConstraints="NO" id="KYa-Ff-lNS" userLabel="Name Label">
                                 <rect key="frame" x="16" y="169" width="361" height="21"/>
@@ -70,6 +73,13 @@
                             <constraint firstItem="KYa-Ff-lNS" firstAttribute="top" secondItem="H9g-aB-wRb" secondAttribute="bottom" constant="8" id="vDO-lc-KZ7"/>
                         </constraints>
                     </view>
+                    <connections>
+                        <outlet property="avatarImageView" destination="H9g-aB-wRb" id="5ku-3n-QD5"/>
+                        <outlet property="descriptionLabel" destination="56I-Hf-sfc" id="yCi-bN-sdA"/>
+                        <outlet property="loginNameLabel" destination="BIB-yS-nqj" id="204-Tt-ycO"/>
+                        <outlet property="logoutButton" destination="V4X-Sx-DPH" id="5qM-SI-WzX"/>
+                        <outlet property="nameLabel" destination="KYa-Ff-lNS" id="yTl-c2-gln"/>
+                    </connections>
                 </viewController>
                 <placeholder placeholderIdentifier="IBFirstResponder" id="SsP-XY-b2m" userLabel="First Responder" customClass="UIResponder" sceneMemberID="firstResponder"/>
             </objects>

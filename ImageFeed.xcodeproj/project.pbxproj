@@ -42,10 +42,18 @@
 /* End PBXFrameworksBuildPhase section */
 
 /* Begin PBXGroup section */
-		A83D74C92D8EB9E40082C85D = {
+		A801707D2D95D02100646295 /* ImageFeed */ = {
 			isa = PBXGroup;
 			children = (
 				A83D74D42D8EB9E40082C85D /* ImageFeed */,
+			);
+			path = ImageFeed;
+			sourceTree = "<group>";
+		};
+		A83D74C92D8EB9E40082C85D = {
+			isa = PBXGroup;
+			children = (
+				A801707D2D95D02100646295 /* ImageFeed */,
 				A83D74D32D8EB9E40082C85D /* Products */,
 			);
 			sourceTree = "<group>";
