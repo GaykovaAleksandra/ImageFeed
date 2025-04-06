@@ -30,6 +30,7 @@ final class ImagesListViewController: UIViewController {
                 assertionFailure("Invalid segue destination")
                 return
             }
+            
             let image = UIImage(named: photosName[indexPath.row])
             viewController.image = image
         } else {
