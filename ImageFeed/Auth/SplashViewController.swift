@@ -15,7 +15,6 @@ final class SplashViewController: UIViewController {
     
     override func viewDidAppear(_ animated: Bool) {
         super.viewDidAppear(animated)
-        print("viewDidAppear called")
         
         if let token = storage.token {
             switchToTabBarController()
@@ -52,22 +51,33 @@ extension SplashViewController {
 }
 
 extension SplashViewController: AuthViewControllerDelegate {
-    func authViewController(_ vc: AuthViewController, didAuthenticateWithCode code: String) {
-        dismiss(animated: true) { [weak self] in
-            guard let self = self else { return }
-            self.self.fetchOAuthToken(code)
+        func authViewController(_ vc: AuthViewController, didAuthenticateWithCode code: String) {
+            oauth2Service.fetchOAuthToken(code: code) { [weak self] result in
+                guard let self = self else { return }
+                switch result {
+                case .success(let token):
+                    print("Токен получен: $token)")
+                    self.storage.token = token
+                    self.dismiss(animated: true)
+                    self.switchToTabBarController()
+                case .failure(let error):
+                    print("Ошибка получения токена: $error)")
+                    break
+                }
+            }
         }
-    }
-    
-    private func fetchOAuthToken(_ code: String) {
-        oauth2Service.fetchOAuthToken(code: code) { [weak self] result in
-            guard let self = self else { return }
-            switch result {
-            case .success:
-                self.switchToTabBarController()
-            case .failure:
-                break
+
+        
+         func fetchOAuthToken(_ code: String) {
+            oauth2Service.fetchOAuthToken(code: code) { [weak self] result in
+                guard let self = self else { return }
+                switch result {
+                case .success:
+                    self.switchToTabBarController()
+                case .failure:
+                    break
+                }
             }
         }
     }
-}
+
