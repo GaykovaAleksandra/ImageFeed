@@ -1,56 +1,46 @@
 import UIKit
-
+ 
 final class OAuth2Service {
     func fetchOAuthToken(code: String, completion: @escaping (Result<String, Error>) -> Void) {
         guard let url = URL(string: "https://unsplash.com/oauth/token") else {
             return
         }
+ 
+        guard let components = URLComponents(url: url, resolvingAgainstBaseURL: true) else {
+                    return
+                }
+
+                var updatedComponents = components
+                updatedComponents.queryItems = [
+                    .init(name: "client_id", value: Constants.accessKey),
+                    .init(name: "client_secret", value: Constants.secretKey),
+                    .init(name: "redirect_uri", value: Constants.redirectURI),
+                    .init(name: "grant_type", value: "authorization_code"),
+                    .init(name: "code", value: code),
+                ]
         
-        guard var urlComponents = URLComponents(string: WebVieConstants.unsplashAuthorizeURLString) else {
-            print("Неверная ссылка")
+        guard let requestURL = components.url else {
             return
         }
         
-        urlComponents.queryItems = [
-            URLQueryItem(name: "client_id", value: Constants.accessKey),
-            URLQueryItem(name: "redirect_uri", value: Constants.redirectURI),
-            URLQueryItem(name: "response_type", value: "code"),
-            URLQueryItem(name: "scope", value: Constants.accessScope)
-            ]
-        
-        guard let url = urlComponents.url else {
-            print("Ошибка")
-            return
-        }
-        
-        var request = URLRequest(url: url)
+        var request = URLRequest(url: requestURL)
         request.httpMethod = "POST"
-        
-//        let bodyParameters = [
-//            "client_id": Constants.accessKey,
-//            "client_secret": Constants.secretKey,
-//            "redirect_uri": Constants.redirectURI,
-//            "grant_type": "authorization_code",
-//            "code": code
-//        ]
-        
-//        request.httpBody = bodyParameters.map { _ in "$$0.key = $$0.value" }.joined(separator: "&").data(using: .utf8)
-//        request.setValue("application/x-www-form-urlencoded", forHTTPHeaderField: "Content-Type")
-//        
-        let task = URLSession.shared.dataTask(with: request) { data, response, error in
+ 
+        let task = URLSession.shared.dataTask(with: request) { data, _, error in
             if let error = error {
                 completion(.failure(error))
                 return
             }
-            
+ 
             guard let data = data else {
                 completion(.failure(NetworkError.urlSessionError))
                 return
             }
-            
+ 
             do {
                 if let jsonResponse = try JSONSerialization.jsonObject(with: data, options: []) as? [String: Any],
-                   let accessToken = jsonResponse["access_token"] as? String {
+                   let accessToken = jsonResponse["access_token"] as? String
+                {
                     completion(.success(accessToken))
                 } else {
                     completion(.failure(NetworkError.urlSessionError))
@@ -59,8 +49,7 @@ final class OAuth2Service {
                 completion(.failure(error))
             }
         }
-        
+ 
         task.resume()
     }
-    
 }

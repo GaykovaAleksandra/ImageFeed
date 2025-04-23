@@ -50,8 +50,8 @@
                         </tabBarAppearance>
                     </tabBar>
                     <connections>
-                        <segue destination="dM3-BK-DWF" kind="relationship" relationship="viewControllers" id="Dje-aT-Evc"/>
                         <segue destination="BYZ-38-t0r" kind="relationship" relationship="viewControllers" id="Rix-Q4-hZX"/>
+                        <segue destination="dM3-BK-DWF" kind="relationship" relationship="viewControllers" id="pkt-ms-3UO"/>
                     </connections>
                 </tabBarController>
                 <placeholder placeholderIdentifier="IBFirstResponder" id="IUb-On-m1n" userLabel="First Responder" customClass="UIResponder" sceneMemberID="firstResponder"/>
@@ -154,7 +154,7 @@
                             <constraint firstItem="9KH-Sx-4Kr" firstAttribute="bottom" secondItem="8bC-Xf-vdC" secondAttribute="bottom" id="gtp-qQ-WZh" userLabel="Table View.bottom = bottom"/>
                         </constraints>
                     </view>
-                    <tabBarItem key="tabBarItem" title="Item" id="InA-VC-lXV"/>
+                    <tabBarItem key="tabBarItem" title=" " image="tab_editorial_active" id="InA-VC-lXV"/>
                     <navigationItem key="navigationItem" id="6hT-rz-7JL"/>
                     <connections>
                         <outlet property="tableView" destination="9KH-Sx-4Kr" id="94h-LD-MZe"/>

@@ -4,14 +4,11 @@ final class SplashViewController: UIViewController {
     private let showAuthenticationScreenSegueIdentifier = "ShowAuthenticationScreen"
     
     private let oauth2Service = OAuth2Service()
+    private let storage = OAuth2TokenStorage()
     
     override func viewDidLoad() {
         super.viewDidLoad()
-        
-        
     }
-    
-    private let storage = OAuth2TokenStorage()
     
     override func viewDidAppear(_ animated: Bool) {
         super.viewDidAppear(animated)
@@ -40,7 +37,7 @@ extension SplashViewController {
                 let navigationController = segue.destination as? UINavigationController,
                 let viewController = navigationController.viewControllers.first as? AuthViewController
             else {
-                assertionFailure("Failed to prepare for \(showAuthenticationScreenSegueIdentifier)")
+                assertionFailure("Failed to prepare for $showAuthenticationScreenSegueIdentifier)")
                 return
             }
             viewController.delegate = self
@@ -51,33 +48,20 @@ extension SplashViewController {
 }
 
 extension SplashViewController: AuthViewControllerDelegate {
-        func authViewController(_ vc: AuthViewController, didAuthenticateWithCode code: String) {
-            oauth2Service.fetchOAuthToken(code: code) { [weak self] result in
-                guard let self = self else { return }
-                switch result {
-                case .success(let token):
-                    print("Токен получен: $token)")
-                    self.storage.token = token
+    func authViewController(_ vc: AuthViewController, didAuthenticateWithCode code: String) {
+        oauth2Service.fetchOAuthToken(code: code) { [weak self] result in
+            guard let self = self else { return }
+            switch result {
+            case .success(let token):
+                print("Токен получен: \(token)")
+                self.storage.token = token
+                DispatchQueue.main.async {
                     self.dismiss(animated: true)
-                    self.switchToTabBarController()
-                case .failure(let error):
-                    print("Ошибка получения токена: $error)")
-                    break
                 }
-            }
-        }
-
-        
-         func fetchOAuthToken(_ code: String) {
-            oauth2Service.fetchOAuthToken(code: code) { [weak self] result in
-                guard let self = self else { return }
-                switch result {
-                case .success:
-                    self.switchToTabBarController()
-                case .failure:
-                    break
-                }
+            case .failure(let error):
+                print("Ошибка получения токена: \(error)")
+                break
             }
         }
     }
-
+}
