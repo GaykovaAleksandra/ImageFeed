@@ -1,55 +1,82 @@
 import UIKit
+
+enum HTTPMethod: String {
+    case get = "GET"
+    case post = "POST"
+    case put = "PUT"
+    case delete = "DELETE"
+}
  
 final class OAuth2Service {
+    static let shared = OAuth2Service() 
+        private init() {}
+    
+    func makeOAuthTokenRequest(code: String) -> URLRequest? {
+        guard let baseURL = URL(string: "https://unsplash.com") else {
+            print("Ошибка: не удалось создать baseURL")
+            return nil
+        }
+
+        var urlComponents = URLComponents()
+        urlComponents.path = "/oauth/token"
+        urlComponents.queryItems = [
+            URLQueryItem(name: "client_id", value: Constants.accessKey),
+            URLQueryItem(name: "client_secret", value: Constants.secretKey),
+            URLQueryItem(name: "redirect_uri", value: Constants.redirectURI),
+            URLQueryItem(name: "code", value: code),
+            URLQueryItem(name: "grant_type", value: "authorization_code")
+        ]
+
+        guard let url = urlComponents.url(relativeTo: baseURL) else {
+            print("Ошибка: не удалось создать URL из компонентов: \(urlComponents)")
+            return nil
+        }
+
+        var request = URLRequest(url: url)
+        request.httpMethod = "POST"
+        return request
+    }
+
     func fetchOAuthToken(code: String, completion: @escaping (Result<String, Error>) -> Void) {
-        guard let url = URL(string: "https://unsplash.com/oauth/token") else {
+        guard let request = makeOAuthTokenRequest(code: code) else {
+            completion(.failure(NSError(domain: "InvalidRequest", code: 0)))
             return
         }
- 
-        guard let components = URLComponents(url: url, resolvingAgainstBaseURL: true) else {
-                    return
+
+        let task = URLSession.shared.data(for: request) { result in
+            switch result {
+            case .success(let data):
+                do {
+                    let decoded = try JSONDecoder().decode(OAuthTokenResponseBody.self, from: data)
+                    let token = decoded.accessToken
+                    OAuth2TokenStorage.shared.token = token
+                    completion(.success(token))
+                } catch {
+                    print("Ошибка декодирования: \(error)")
+                    completion(.failure(error))
                 }
 
-                var updatedComponents = components
-                updatedComponents.queryItems = [
-                    .init(name: "client_id", value: Constants.accessKey),
-                    .init(name: "client_secret", value: Constants.secretKey),
-                    .init(name: "redirect_uri", value: Constants.redirectURI),
-                    .init(name: "grant_type", value: "authorization_code"),
-                    .init(name: "code", value: code),
-                ]
-        
-        guard let requestURL = components.url else {
-            return
-        }
-        
-        var request = URLRequest(url: requestURL)
-        request.httpMethod = "POST"
- 
-        let task = URLSession.shared.dataTask(with: request) { data, _, error in
-            if let error = error {
-                completion(.failure(error))
-                return
-            }
- 
-            guard let data = data else {
-                completion(.failure(NetworkError.urlSessionError))
-                return
-            }
- 
-            do {
-                if let jsonResponse = try JSONSerialization.jsonObject(with: data, options: []) as? [String: Any],
-                   let accessToken = jsonResponse["access_token"] as? String
-                {
-                    completion(.success(accessToken))
+            case .failure(let error):
+                if let networkError = error as? NetworkError {
+                    switch networkError {
+                    case .httpStatusCode(let code, let data):
+                        print("Ошибка: сервер вернул статус-код \(code)")
+                        if let data = data, let errorString = String(data: data, encoding: .utf8) {
+                            print("Ответ сервера:\n\(errorString)")
+                        } else {
+                            print("Ответ сервера пустой или не удалось декодировать")
+                        }
+                    case .urlRequestError(let requestError):
+                        print("Ошибка запроса: \(requestError)")
+                    case .urlSessionError:
+                        print("Неизвестная ошибка URLSession")
+                    }
                 } else {
-                    completion(.failure(NetworkError.urlSessionError))
+                    print("Неизвестная ошибка сети: \(error)")
                 }
-            } catch {
                 completion(.failure(error))
             }
         }
- 
         task.resume()
     }
 }

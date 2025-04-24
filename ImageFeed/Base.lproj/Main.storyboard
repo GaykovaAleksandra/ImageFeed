@@ -15,11 +15,11 @@
             <objects>
                 <viewController storyboardIdentifier="SplashViewController" id="4hZ-HI-vbM" customClass="SplashViewController" customModule="ImageFeed" customModuleProvider="target" sceneMemberID="viewController">
                     <view key="view" contentMode="scaleToFill" id="Ih9-Lp-UuY">
-                        <rect key="frame" x="0.0" y="0.0" width="393" height="852"/>
+                        <rect key="frame" x="0.0" y="0.0" width="393" height="842"/>
                         <autoresizingMask key="autoresizingMask" widthSizable="YES" heightSizable="YES"/>
                         <subviews>
                             <imageView clipsSubviews="YES" userInteractionEnabled="NO" contentMode="scaleAspectFit" horizontalHuggingPriority="251" verticalHuggingPriority="251" image="Vector" translatesAutoresizingMaskIntoConstraints="NO" id="mAL-1B-L2i">
-                                <rect key="frame" x="159" y="387" width="75" height="78"/>
+                                <rect key="frame" x="159" y="382" width="75" height="78"/>
                             </imageView>
                         </subviews>
                         <viewLayoutGuide key="safeArea" id="rj5-CX-qGN"/>
@@ -29,6 +29,7 @@
                             <constraint firstItem="mAL-1B-L2i" firstAttribute="centerX" secondItem="Ih9-Lp-UuY" secondAttribute="centerX" id="coE-xN-HWG"/>
                         </constraints>
                     </view>
+                    <navigationItem key="navigationItem" id="gdN-7b-sDc"/>
                     <connections>
                         <segue destination="roa-Gj-h7x" kind="presentation" identifier="ShowAuthenticationScreen" modalPresentationStyle="fullScreen" id="86R-Ee-znr"/>
                     </connections>
@@ -69,6 +70,9 @@
                         <color key="backgroundColor" name="YP Black"/>
                     </view>
                     <tabBarItem key="tabBarItem" title="" image="tab_profile_active" id="Kzx-Oa-Q8f"/>
+                    <connections>
+                        <segue destination="4hZ-HI-vbM" kind="show" identifier="logoutSegue" id="CmX-4G-pdH"/>
+                    </connections>
                 </viewController>
                 <placeholder placeholderIdentifier="IBFirstResponder" id="SsP-XY-b2m" userLabel="First Responder" customClass="UIResponder" sceneMemberID="firstResponder"/>
             </objects>

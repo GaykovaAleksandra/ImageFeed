@@ -1,11 +1,14 @@
 import Foundation
 
-class OAuth2TokenStorage {
-    private let tokenKey = "oauth2_access_token"
+final class OAuth2TokenStorage {
+    static let shared = OAuth2TokenStorage()
+        private init() {}
+    
+     let tokenKey = "oauth2_access_token"
     
     var token: String? {
         get {
-            return UserDefaults.standard.string(forKey: tokenKey)
+            UserDefaults.standard.string(forKey: tokenKey)
         }
         set {
             if let newValue = newValue {

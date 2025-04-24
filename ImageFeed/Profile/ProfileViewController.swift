@@ -83,6 +83,7 @@ final class ProfileViewController: UIViewController {
     
     @objc
     private func didTapLogoutButton() {
-        // TODO: 
+        UserDefaults.standard.removeObject(forKey: OAuth2TokenStorage.shared.tokenKey)
+        performSegue(withIdentifier: "logoutSegue" , sender: nil)
     }
 }

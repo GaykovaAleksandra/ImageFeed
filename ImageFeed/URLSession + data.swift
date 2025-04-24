@@ -1,7 +1,14 @@
+//
+//  URLSession+data.swift
+//  ImageFeed
+//
+//  Created by Алексей Витценко on 17.04.2025.
+//
+
 import UIKit
 
 enum NetworkError: Error {
-    case httpStatusCode(Int)
+    case httpStatusCode(Int, Data?)
     case urlRequestError(Error)
     case urlSessionError
 }
@@ -9,38 +16,28 @@ enum NetworkError: Error {
 extension URLSession {
     func data(
         for request: URLRequest,
-        completion: @escaping (Result<(Data, HTTPURLResponse), Error>) -> Void
+        completion: @escaping (Result<Data, Error>) -> Void
     ) -> URLSessionTask {
-        let fulfillCompletionOnTheMainThread: (Result<(Data, HTTPURLResponse), Error>) -> Void = { result in
+        let fulfillCompletionOnTheMainThread: (Result<Data, Error>) -> Void = { result in
             DispatchQueue.main.async {
                 completion(result)
             }
         }
-        
+
         let task = dataTask(with: request) { data, response, error in
-            if let error = error {
+            if let data = data, let response = response, let statusCode = (response as? HTTPURLResponse)?.statusCode {
+                if 200 ..< 300 ~= statusCode {
+                    fulfillCompletionOnTheMainThread(.success(data))
+                } else {
+                    fulfillCompletionOnTheMainThread(.failure(NetworkError.httpStatusCode(statusCode, data)))
+                }
+            } else if let error = error {
                 fulfillCompletionOnTheMainThread(.failure(NetworkError.urlRequestError(error)))
-                return
-            }
-            
-            guard let httpResponse = response as? HTTPURLResponse else {
-                fulfillCompletionOnTheMainThread(.failure(NetworkError.urlSessionError))
-                return
-            }
-            
-            guard let data = data else {
-                fulfillCompletionOnTheMainThread(.failure(NetworkError.urlSessionError))
-                return
-            }
-            
-            if (200..<300).contains(httpResponse.statusCode) {
-                fulfillCompletionOnTheMainThread(.success((data, httpResponse)))
             } else {
-                fulfillCompletionOnTheMainThread(.failure(NetworkError.httpStatusCode(httpResponse.statusCode)))
+                fulfillCompletionOnTheMainThread(.failure(NetworkError.urlSessionError))
             }
         }
-        
-        task.resume()
+
         return task
     }
 }
