@@ -7,8 +7,28 @@ final class ProfileViewController: UIViewController {
     private let loginNameLabel = UILabel()
     private let descriptionLabel = UILabel()
     
+    private let profileService = ProfileService.shared
+    private var profileImageServiceObserver: NSObjectProtocol?
+    
     override func viewDidLoad() {
         super.viewDidLoad()
+        
+        profileImageServiceObserver = NotificationCenter.default.addObserver(
+            forName: ProfileImageService.didChangeNotification,
+            object: nil,
+            queue: .main
+        ) { [weak self] _ in
+            guard let self else { return }
+            self.updateAvatar()
+        }
+        
+        DispatchQueue.main.async {
+            if let profile = self.profileService.profile {
+                self.updateProfileDetails(profile: profile)
+            } else {
+                print("Профиль еще не загружен")
+            }
+        }
         
         view.backgroundColor = .ypBlack
         title = "Profile"
@@ -16,7 +36,22 @@ final class ProfileViewController: UIViewController {
         name()
         loginName()
         description()
+        
         logout()
+        updateAvatar()
+    }
+    
+    private func updateProfileDetails(profile: Profile) {
+        nameLabel.text = profile.name
+        loginNameLabel.text = profile.loginName
+        descriptionLabel.text = profile.bio ?? ""
+    }
+    
+    private func updateAvatar() {
+        guard
+            let profileImageURL = ProfileImageService.shared.avatarURL,
+            let url = URL(string: profileImageURL)
+        else { return }
     }
     
     private func avatarImage() {

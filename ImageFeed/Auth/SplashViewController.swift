@@ -1,10 +1,12 @@
 import UIKit
+import ProgressHUD
 
 final class SplashViewController: UIViewController {
     private let showAuthenticationScreenSegueIdentifier = "ShowAuthenticationScreen"
     
     private let oauth2Service = OAuth2Service.shared
     private let storage = OAuth2TokenStorage.shared
+    private let profileService = ProfileService.shared
     
     override func viewDidLoad() {
         super.viewDidLoad()
@@ -13,9 +15,9 @@ final class SplashViewController: UIViewController {
     override func viewDidAppear(_ animated: Bool) {
         super.viewDidAppear(animated)
         
-        if storage.token != nil {
-            switchToTabBarController()
-            print("Token exists, switching to tab bar controller")
+        if let token = storage.token {
+            fetchProfile(token)
+            print("Token exists, fetching profile")
         } else {
             performSegue(withIdentifier: showAuthenticationScreenSegueIdentifier, sender: nil)
             print("Token is nil, showing authentication screen")
@@ -29,7 +31,10 @@ final class SplashViewController: UIViewController {
         }
         let tabBarController = UIStoryboard(name: "Main", bundle: .main)
             .instantiateViewController(withIdentifier: "TabBarViewController")
-        window.rootViewController = tabBarController
+        
+        DispatchQueue.main.async {
+            window.rootViewController = tabBarController
+        }
     }
 }
 
@@ -40,7 +45,7 @@ extension SplashViewController {
                 let navigationController = segue.destination as? UINavigationController,
                 let viewController = navigationController.viewControllers.first as? AuthViewController
             else {
-                assertionFailure("Failed to prepare for $showAuthenticationScreenSegueIdentifier)")
+                assertionFailure("Failed to prepare for \(showAuthenticationScreenSegueIdentifier)")
                 return
             }
             viewController.delegate = self
@@ -52,12 +57,21 @@ extension SplashViewController {
 
 extension SplashViewController: AuthViewControllerDelegate {
     func authViewController(_ vc: AuthViewController, didAuthenticateWithCode code: String) {
-        oauth2Service.fetchOAuthToken(code: code) { [weak self] result in
-            guard let self = self else { return }
+        vc.dismiss(animated: true)
+        
+        UIBlockingProgressHUD.show()
+        oauth2Service.fetchOAuthToken(code) { [weak self] result in
+            guard let self else { return }
+            
+            defer { UIBlockingProgressHUD.dismiss() }
+            
             switch result {
             case .success(let token):
                 print("Токен получен: \(token)")
+                
                 self.storage.token = token
+                self.fetchProfile(token)
+                
                 DispatchQueue.main.async {
                     self.dismiss(animated: true)
                 }
@@ -67,4 +81,42 @@ extension SplashViewController: AuthViewControllerDelegate {
             }
         }
     }
+    
+    func didAuthenticate(_ vc: AuthViewController) {
+        vc.dismiss(animated: true)
+        
+        guard let token = storage.token else {
+            return
+        }
+        
+        fetchProfile(token)
+    }
+    
+    private func fetchProfile(_ token: String) {
+        UIBlockingProgressHUD.show()
+        profileService.fetchProfile(token) { [weak self] result in
+            UIBlockingProgressHUD.dismiss()
+            
+            guard let self else { return }
+            
+            switch result {
+            case .success(let profile):
+              
+                let username = profile.username
+                
+                ProfileImageService.shared.fetchProfileImageURL(username: username) { _ in
+                    // TODO - Не дожидаемся завершения запроса 
+                }
+                
+                self.switchToTabBarController()
+                
+            case .failure:
+                // TODO - обработка ошибки при получении профиля
+                break
+            }
+        }
+    }
+    
+    
 }
+
