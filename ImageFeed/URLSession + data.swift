@@ -1,10 +1,3 @@
-//
-//  URLSession+data.swift
-//  ImageFeed
-//
-//  Created by Алексей Витценко on 17.04.2025.
-//
-
 import UIKit
 
 enum NetworkError: Error {
@@ -14,30 +7,27 @@ enum NetworkError: Error {
 }
 
 extension URLSession {
-    func data(
+    func objectTask<T: Decodable>(
         for request: URLRequest,
-        completion: @escaping (Result<Data, Error>) -> Void
+        completion: @escaping (Result<T, Error>) -> Void
     ) -> URLSessionTask {
-        let fulfillCompletionOnTheMainThread: (Result<Data, Error>) -> Void = { result in
-            DispatchQueue.main.async {
-                completion(result)
-            }
-        }
+        let decoder = JSONDecoder()
 
-        let task = dataTask(with: request) { data, response, error in
-            if let data = data, let response = response, let statusCode = (response as? HTTPURLResponse)?.statusCode {
-                if 200 ..< 300 ~= statusCode {
-                    fulfillCompletionOnTheMainThread(.success(data))
-                } else {
-                    fulfillCompletionOnTheMainThread(.failure(NetworkError.httpStatusCode(statusCode, data)))
+        let task = data(for: request) { (result: Result<Data, Error>) in
+            switch result {
+            case .success(let data):
+                do {
+                    let object = try decoder.decode(T.self, from: data)
+                    completion(.success(object))
+                } catch {
+                    completion(.failure(error))
                 }
-            } else if let error = error {
-                fulfillCompletionOnTheMainThread(.failure(NetworkError.urlRequestError(error)))
-            } else {
-                fulfillCompletionOnTheMainThread(.failure(NetworkError.urlSessionError))
+            case .failure(let error):
+                completion(.failure(error))
             }
         }
-
+        
+        task.resume()
         return task
     }
 }
