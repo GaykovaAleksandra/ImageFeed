@@ -9,7 +9,7 @@ final class OAuth2TokenStorage {
     
     var token: String? {
         get {
-            KeychainWrapper.standard.string(forKey: tokenKey)
+            return KeychainWrapper.standard.string(forKey: tokenKey)
         }
         set {
             if let newValue = newValue {
