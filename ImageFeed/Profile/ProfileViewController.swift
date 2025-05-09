@@ -39,6 +39,8 @@ final class ProfileViewController: UIViewController {
         
         logout()
         updateAvatar()
+        
+        ProfileImageService.shared.fetchAvatarURL(into: avatarImageView)
     }
     
     private func updateProfileDetails(profile: Profile) {
