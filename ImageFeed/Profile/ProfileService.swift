@@ -1,19 +1,5 @@
 import UIKit
 
-struct ProfileResult: Codable {
-    let username: String
-    let firstName: String?
-    let lastName: String?
-    let bio: String?
-    
-    enum CodingKeys: String, CodingKey {
-        case username
-        case firstName = "first_name"
-        case lastName = "last_name"
-        case bio
-    }
-}
-
 struct Profile {
     let username: String
     let firstName: String?
@@ -53,41 +39,33 @@ final class ProfileService {
     
     func fetchProfile(_ token: String, completion: @escaping (Result<Profile, Error>) -> Void) {
         guard let url = URL(string: "https://api.unsplash.com/me") else {
-            completion(.failure(NSError(domain: "Invalid URL", code: 0, userInfo: nil)))
+            let error = NSError(domain: "Invalid URL", code: 0, userInfo: nil)
+            print("Invalid URL - \(error.localizedDescription)")
+            completion(.failure(error))
             return
         }
         
         let request = createGETRequest(url: url, bearerToken: token)
         
-        URLSession.shared.dataTask(with: request) { data, response, error in
-            if let error {
-                print("Ошибка запроса профиля: \(error)")
-                completion(.failure(error))
-                return
-            }
-            
-            guard let data else {
-                print("Нет данных в ответе")
-                completion(.failure(NSError(domain: "No data", code: 0, userInfo: nil)))
-                return
-            }
-            
-            do {
-                let profileResult = try JSONDecoder().decode(ProfileResult.self, from: data)
-                
-                let profile = Profile(username: profileResult.username,
-                                      firstName: profileResult.firstName ?? "",
-                                      lastName: profileResult.lastName ?? "",
-                                      bio: profileResult.bio ?? "")
-                
-                self.profile = profile
-                
-                completion(.success(profile))
-                
-                print("нужные мне данные: \(profile)")
-            } catch {
-                print("Ошибка декодирования профиля: $error)")
-                completion(.failure(error))
+        URLSession.shared.objectTask(for: request) { [weak self] (result: Result<ProfileResult, Error>) in
+            DispatchQueue.main.async {
+                switch result {
+                case .success(let profileResult):
+                    let profile = Profile(username: profileResult.username,
+                                          firstName: profileResult.firstName ?? "",
+                                          lastName: profileResult.lastName ?? "",
+                                          bio: profileResult.bio ?? "")
+                    
+                    self?.profile = profile
+                    
+                    completion(.success(profile))
+                    
+                    print("нужные мне данные: \(profile)")
+                    
+                case .failure(let error):
+                    print("Ошибка запроса профиля: \(error.localizedDescription)")
+                    completion(.failure(error))
+                }
             }
         }.resume()
     }

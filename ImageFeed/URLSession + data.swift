@@ -12,22 +12,27 @@ extension URLSession {
         completion: @escaping (Result<T, Error>) -> Void
     ) -> URLSessionTask {
         let decoder = JSONDecoder()
-
-        let task = data(for: request) { (result: Result<Data, Error>) in
-            switch result {
-            case .success(let data):
-                do {
-                    let object = try decoder.decode(T.self, from: data)
-                    completion(.success(object))
-                } catch {
-                    completion(.failure(error))
-                }
-            case .failure(let error):
+        
+        let task = dataTask(with: request) { data, response, error in
+            if let error = error {
+                completion(.failure(error))
+                return
+            }
+            
+            guard let data = data else {
+                completion(.failure(NSError(domain: "DataError", code: -1,
+                                            userInfo: [NSLocalizedDescriptionKey : "No data received"])))
+                return
+            }
+            
+            do {
+                let object = try decoder.decode(T.self, from: data)
+                completion(.success(object))
+            } catch {
                 completion(.failure(error))
             }
         }
         
-        task.resume()
         return task
     }
 }

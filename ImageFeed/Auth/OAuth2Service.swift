@@ -55,19 +55,13 @@ final class OAuth2Service {
             return
         }
         
-        let task = urlSession.objectTask(for: request) { [weak self] result in
+        let task = urlSession.objectTask(for: request) { [weak self] (result: Result<OAuthTokenResponseBody, Error>) in
             DispatchQueue.main.async {
                 switch result {
-                case .success(let data):
-                    do {
-                        let decoded = try JSONDecoder().decode(OAuthTokenResponseBody.self, from: data)
-                        let token = decoded.accessToken
-                        OAuth2TokenStorage.shared.token = token
-                        completion(.success(token))
-                    } catch {
-                        print("Ошибка декодирования: \(error)")
-                        completion(.failure(error))
-                    }
+                case .success(let decoded):
+                    let token = decoded.accessToken
+                    OAuth2TokenStorage.shared.token = token
+                    completion(.success(token))
                     
                 case .failure(let error):
                     if let networkError = error as? NetworkError {
@@ -75,7 +69,7 @@ final class OAuth2Service {
                         case .httpStatusCode(let code, let data):
                             print("Ошибка: сервер вернул статус-код \(code)")
                             if let data = data, let errorString = String(data: data, encoding: .utf8) {
-                                print("Ответ сервера:\n\(errorString)")
+                                print("Ответ сервера: \(errorString)")
                             } else {
                                 print("Ответ сервера пустой или не удалось декодировать")
                             }
