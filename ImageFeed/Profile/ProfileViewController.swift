@@ -60,6 +60,11 @@ final class ProfileViewController: UIViewController {
         avatarImageView.translatesAutoresizingMaskIntoConstraints = false
         view.addSubview(avatarImageView)
         
+        avatarImageView.backgroundColor = .clear
+        
+        avatarImageView.layer.cornerRadius = 35
+        avatarImageView.clipsToBounds = true
+        
         avatarImageView.topAnchor.constraint(equalTo: view.safeAreaLayoutGuide.topAnchor, constant: 32).isActive = true
         avatarImageView.leadingAnchor.constraint(equalTo: view.safeAreaLayoutGuide.leadingAnchor, constant: 16).isActive = true
         avatarImageView.widthAnchor.constraint(equalToConstant: 70).isActive = true

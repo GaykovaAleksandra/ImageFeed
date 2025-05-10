@@ -2,7 +2,7 @@ import UIKit
 import Kingfisher
 
 struct ProfileImage: Codable {
-    let small: String
+    let large: String
 }
 
 final class ProfileImageService {
@@ -14,16 +14,24 @@ final class ProfileImageService {
     static let didChangeNotification = Notification.Name(rawValue: "ProfileImageProvideDidChange")
     
     func fetchAvatarURL(into imageView: UIImageView) {
-        let imageUrlPath = "https://images.unsplash.com/profile-1746629042662-867971c07cdbimage?ixlib=imgixjs-3.3.2&crop=faces&fit=crop&w=300&h=300"
-        
-        guard let imageURL = URL(string: imageUrlPath) else {
-            print("Неверная ссылка на аватарку")
-            return
-        }
-        
-        DispatchQueue.main.async {
+        guard let imageURLString = avatarURL, let imageURL = URL(string: imageURLString) else {
+                print("Неверная ссылка на аватарку")
+                return
+            }
+            
             let processor = RoundCornerImageProcessor(cornerRadius: 100)
-            imageView.kf.setImage(with: imageURL, placeholder: UIImage(named: "placeholder.jpeg"), options: [.processor(processor)])
+            
+        DispatchQueue.main.async {
+            imageView.kf.setImage(with: imageURL,
+                                  placeholder: UIImage(named: "placeholder.jpeg"),
+                                  options: [.processor(processor)]) { result in
+                switch result {
+                case .success(let value):
+                    print("Изображение успешно загружено: \(value.source.url?.absoluteString ?? "")")
+                case .failure(let error):
+                    print("Ошибка при загрузке изображения: \(error.localizedDescription)")
+                }
+            }
         }
     }
     
@@ -35,7 +43,7 @@ final class ProfileImageService {
             return
         }
         
-        let urlString = "https://api.github.com/users/\(username)"
+        let urlString = "https://api.unsplash.com/users/\(username)"
         
         guard let url = URL(string: urlString) else {
             let error = NSError(domain: "URLError", code: 400, userInfo: nil)
@@ -51,8 +59,8 @@ final class ProfileImageService {
             DispatchQueue.main.async {
                 switch result {
                 case .success(let userResult):
-                    self?.avatarURL = userResult.profileImage.small
-                    completion(.success(userResult.profileImage.small))
+                    self?.avatarURL = userResult.profileImage.large
+                    completion(.success(userResult.profileImage.large))
                     NotificationCenter.default.post(name: ProfileImageService.didChangeNotification, object: self)
                 case .failure(let error):
                     print("Failed to fetch profile image URL: \(error.localizedDescription)")
