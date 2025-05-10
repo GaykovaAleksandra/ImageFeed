@@ -15,12 +15,12 @@ final class ProfileImageService {
     
     func fetchAvatarURL(into imageView: UIImageView) {
         guard let imageURLString = avatarURL, let imageURL = URL(string: imageURLString) else {
-                print("Неверная ссылка на аватарку")
-                return
-            }
-            
-            let processor = RoundCornerImageProcessor(cornerRadius: 100)
-            
+            print("Неверная ссылка на аватарку")
+            return
+        }
+        
+        let processor = RoundCornerImageProcessor(cornerRadius: 100)
+        
         DispatchQueue.main.async {
             imageView.kf.setImage(with: imageURL,
                                   placeholder: UIImage(named: "placeholder.jpeg"),

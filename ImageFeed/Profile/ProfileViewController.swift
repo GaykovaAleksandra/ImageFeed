@@ -31,7 +31,7 @@ final class ProfileViewController: UIViewController {
         }
         
         view.backgroundColor = .ypBlack
-        title = "Profile"
+        
         avatarImage()
         name()
         loginName()
