@@ -57,8 +57,8 @@ final class WebViewViewController: UIViewController {
     }
     
     deinit {
-            estimatedProgressObservation?.invalidate()
-        }
+        estimatedProgressObservation?.invalidate()
+    }
     
     private func updateProgress() {
         progressView.progress = Float(webView.estimatedProgress)

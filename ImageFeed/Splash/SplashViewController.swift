@@ -2,7 +2,7 @@ import UIKit
 import ProgressHUD
 
 final class SplashViewController: UIViewController {
-    private let showAuthenticationScreenSegueIdentifier = "ShowAuthenticationScreen"
+    private let logoImageView = UIImageView(image: UIImage(named: "splash_screen_logo"))
     
     private let oauth2Service = OAuth2Service.shared
     private let storage = OAuth2TokenStorage.shared
@@ -10,6 +10,9 @@ final class SplashViewController: UIViewController {
     
     override func viewDidLoad() {
         super.viewDidLoad()
+        
+        view.backgroundColor = .ypBlack
+        logo()
     }
     
     override func viewDidAppear(_ animated: Bool) {
@@ -19,7 +22,7 @@ final class SplashViewController: UIViewController {
             fetchProfile(token)
             print("Token exists, fetching profile")
         } else {
-            performSegue(withIdentifier: showAuthenticationScreenSegueIdentifier, sender: nil)
+            presentAuthViewController()
             print("Token is nil, showing authentication screen")
         }
     }
@@ -36,22 +39,24 @@ final class SplashViewController: UIViewController {
             window.rootViewController = tabBarController
         }
     }
-}
-
-extension SplashViewController {
-    override func prepare(for segue: UIStoryboardSegue, sender: Any?) {
-        if segue.identifier == showAuthenticationScreenSegueIdentifier {
-            guard
-                let navigationController = segue.destination as? UINavigationController,
-                let viewController = navigationController.viewControllers.first as? AuthViewController
-            else {
-                assertionFailure("Failed to prepare for \(showAuthenticationScreenSegueIdentifier)")
-                return
-            }
-            viewController.delegate = self
-        } else {
-            super.prepare(for: segue, sender: sender)
-        }
+    
+    private func logo() {
+        logoImageView.translatesAutoresizingMaskIntoConstraints = false
+        view.addSubview(logoImageView)
+        
+        logoImageView.widthAnchor.constraint(equalToConstant: 60).isActive = true
+        logoImageView.heightAnchor.constraint(equalToConstant: 60).isActive = true
+        
+        logoImageView.centerYAnchor.constraint(equalTo: view.safeAreaLayoutGuide.centerYAnchor).isActive = true
+        logoImageView.centerXAnchor.constraint(equalTo: view.safeAreaLayoutGuide.centerXAnchor).isActive = true
+    }
+    
+    private func presentAuthViewController() {
+        let auth = AuthViewController()
+        auth.delegate = self
+        auth.modalPresentationStyle = .fullScreen
+        
+        present(auth, animated: true, completion: nil)
     }
 }
 
@@ -60,6 +65,7 @@ extension SplashViewController: AuthViewControllerDelegate {
         vc.dismiss(animated: true)
         
         UIBlockingProgressHUD.show()
+        
         oauth2Service.fetchOAuthToken(code) { [weak self] result in
             guard let self else { return }
             
@@ -75,6 +81,7 @@ extension SplashViewController: AuthViewControllerDelegate {
                 DispatchQueue.main.async {
                     self.dismiss(animated: true)
                 }
+                
             case .failure(let error):
                 print("Ошибка получения токена: \(error)")
                 break
@@ -85,9 +92,7 @@ extension SplashViewController: AuthViewControllerDelegate {
     func didAuthenticate(_ vc: AuthViewController) {
         vc.dismiss(animated: true)
         
-        guard let token = storage.token else {
-            return
-        }
+        guard let token = storage.token else { return }
         
         fetchProfile(token)
     }
@@ -101,7 +106,7 @@ extension SplashViewController: AuthViewControllerDelegate {
             
             switch result {
             case .success(let profile):
-              
+                
                 let username = profile.username
                 
                 ProfileImageService.shared.fetchProfileImageURL(username: username) { _ in
@@ -116,7 +121,5 @@ extension SplashViewController: AuthViewControllerDelegate {
             }
         }
     }
-    
-    
 }
 
