@@ -1,7 +1,7 @@
 import UIKit
 
 enum AuthServiceError: Error {
-    case invalideRequest
+    case invalidRequest
 }
 
 final class OAuth2Service {
@@ -9,7 +9,6 @@ final class OAuth2Service {
     private init() {}
     
     private let urlSession = URLSession.shared
-    
     private var task: URLSessionTask?
     private var lastCode: String?
     
@@ -42,18 +41,19 @@ final class OAuth2Service {
     func fetchOAuthToken(_ code: String, completion: @escaping (Result<String, Error>) -> Void) {
         
         assert(Thread.isMainThread)
-        guard lastCode != code else {
-            completion(.failure(AuthServiceError.invalideRequest))
-            return
-        }
-        
-        task?.cancel()
-        lastCode = code
-        
-        guard let request = makeOAuthTokenRequest(code: code) else {
-            completion(.failure(AuthServiceError.invalideRequest))
-            return
-        }
+
+            guard lastCode != code else {
+                completion(.failure(AuthServiceError.invalidRequest))
+                return
+            }
+            
+            task?.cancel()
+            lastCode = code
+            
+            guard let request = makeOAuthTokenRequest(code: code) else {
+                completion(.failure(AuthServiceError.invalidRequest))
+                return
+            }
         
         let task = urlSession.objectTask(for: request) { [weak self] (result: Result<OAuthTokenResponseBody, Error>) in
             DispatchQueue.main.async {
@@ -64,30 +64,35 @@ final class OAuth2Service {
                     completion(.success(token))
                     
                 case .failure(let error):
-                    if let networkError = error as? NetworkError {
-                        switch networkError {
-                        case .httpStatusCode(let code, let data):
-                            print("Ошибка: сервер вернул статус-код \(code)")
-                            if let data = data, let errorString = String(data: data, encoding: .utf8) {
-                                print("Ответ сервера: \(errorString)")
-                            } else {
-                                print("Ответ сервера пустой или не удалось декодировать")
-                            }
-                        case .urlRequestError(let requestError):
-                            print("Ошибка запроса: \(requestError)")
-                        case .urlSessionError:
-                            print("Неизвестная ошибка URLSession")
-                        }
-                    } else {
-                        print("Неизвестная ошибка сети: \(error)")
-                    }
+                    self?.handleError(error)
                     completion(.failure(error))
                 }
                 self?.task = nil
                 self?.lastCode = nil
             }
         }
+            
         self.task = task
         task.resume()
     }
+        
+        private func handleError(_ error: Error) {
+            if let networkError = error as? NetworkError {
+                switch networkError {
+                case .httpStatusCode(let code, let data):
+                    print("Ошибка: сервер вернул статус-код \(code)")
+                    if let data = data, let errorString = String(data: data, encoding: .utf8) {
+                        print("Ответ сервера: \(errorString)")
+                    } else {
+                        print("Ответ сервера пустой или не удалось декодировать")
+                    }
+                case .urlRequestError(let requestError):
+                    print("Ошибка запроса: \(requestError)")
+                case .urlSessionError:
+                    print("Неизвестная ошибка URLSession")
+                }
+            } else {
+                print("Неизвестная ошибка сети: \(error)")
+            }
+        }
 }

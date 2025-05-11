@@ -2,7 +2,7 @@ import UIKit
 import ProgressHUD
 
 final class SplashViewController: UIViewController {
-    private let logoImageView = UIImageView(image: UIImage(named: "splash_screen_logo"))
+    private let logoImageView = UIImageView(image: UIImage(named: "Vector"))
     
     private let oauth2Service = OAuth2Service.shared
     private let storage = OAuth2TokenStorage.shared
@@ -39,12 +39,14 @@ final class SplashViewController: UIViewController {
         logoImageView.centerXAnchor.constraint(equalTo: view.safeAreaLayoutGuide.centerXAnchor).isActive = true
     }
     
-    private func presentAuthViewController() {
+    func presentAuthViewController() {
         let storyboard = UIStoryboard(name: "Main", bundle: nil)
 
         guard let authVC = storyboard.instantiateViewController(withIdentifier: "AuthViewController") as? AuthViewController else {
             return
         }
+        
+        authVC.delegate = self
         
         let navigationController = UINavigationController(rootViewController: authVC)
 

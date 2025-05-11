@@ -44,6 +44,12 @@ final class ProfileViewController: UIViewController {
         ProfileImageService.shared.fetchAvatarURL(into: avatarImageView)
     }
     
+    deinit {
+        if let observer = profileImageServiceObserver {
+            NotificationCenter.default.removeObserver(observer)
+        }
+    }
+    
     private func updateProfileDetails(profile: Profile) {
         nameLabel.text = profile.name
         loginNameLabel.text = profile.loginName
@@ -138,6 +144,6 @@ final class ProfileViewController: UIViewController {
         }
         
         auth.modalPresentationStyle = .fullScreen
-            present(auth, animated: true, completion: nil)
-       }
+        present(auth, animated: true, completion: nil)
+    }
 }
