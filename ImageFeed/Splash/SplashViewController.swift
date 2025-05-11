@@ -12,6 +12,7 @@ final class SplashViewController: UIViewController {
         super.viewDidLoad()
         
         view.backgroundColor = .ypBlack
+        
         logo()
     }
     
@@ -27,19 +28,6 @@ final class SplashViewController: UIViewController {
         }
     }
     
-    private func switchToTabBarController() {
-        guard let window = UIApplication.shared.windows.first else {
-            assertionFailure ("Invalid Configuration")
-            return
-        }
-        let tabBarController = UIStoryboard(name: "Main", bundle: .main)
-            .instantiateViewController(withIdentifier: "TabBarViewController")
-        
-        DispatchQueue.main.async {
-            window.rootViewController = tabBarController
-        }
-    }
-    
     private func logo() {
         logoImageView.translatesAutoresizingMaskIntoConstraints = false
         view.addSubview(logoImageView)
@@ -52,11 +40,44 @@ final class SplashViewController: UIViewController {
     }
     
     private func presentAuthViewController() {
-        let auth = AuthViewController()
-        auth.delegate = self
-        auth.modalPresentationStyle = .fullScreen
+        let storyboard = UIStoryboard(name: "Main", bundle: nil)
+
+        guard let authVC = storyboard.instantiateViewController(withIdentifier: "AuthViewController") as? AuthViewController else {
+            return
+        }
         
-        present(auth, animated: true, completion: nil)
+        let navigationController = UINavigationController(rootViewController: authVC)
+
+        navigationController.modalPresentationStyle = .fullScreen
+        
+        present(navigationController, animated: true, completion: nil)
+    }
+    
+    
+    private func fetchProfile(_ token: String) {
+        UIBlockingProgressHUD.show()
+        
+        profileService.fetchProfile(token) { [weak self] result in
+            UIBlockingProgressHUD.dismiss()
+            
+            guard let self else { return }
+            
+            switch result {
+            case .success(let profile):
+                
+                let username = profile.username
+                
+                ProfileImageService.shared.fetchProfileImageURL(username: username) { _ in
+                    // TODO - Не дожидаемся завершения запроса
+                }
+                
+                self.switchToTabBarController()
+                
+            case .failure:
+                self.presentAuthViewController()
+                break
+            }
+        }
     }
 }
 
@@ -78,12 +99,9 @@ extension SplashViewController: AuthViewControllerDelegate {
                 self.storage.token = token
                 self.fetchProfile(token)
                 
-                DispatchQueue.main.async {
-                    self.dismiss(animated: true)
-                }
-                
             case .failure(let error):
                 print("Ошибка получения токена: \(error)")
+                self.presentAuthViewController()
                 break
             }
         }
@@ -97,28 +115,16 @@ extension SplashViewController: AuthViewControllerDelegate {
         fetchProfile(token)
     }
     
-    private func fetchProfile(_ token: String) {
-        UIBlockingProgressHUD.show()
-        profileService.fetchProfile(token) { [weak self] result in
-            UIBlockingProgressHUD.dismiss()
-            
-            guard let self else { return }
-            
-            switch result {
-            case .success(let profile):
-                
-                let username = profile.username
-                
-                ProfileImageService.shared.fetchProfileImageURL(username: username) { _ in
-                    // TODO - Не дожидаемся завершения запроса 
-                }
-                
-                self.switchToTabBarController()
-                
-            case .failure:
-                // TODO - обработка ошибки при получении профиля
-                break
-            }
+    private func switchToTabBarController() {
+        guard let window = UIApplication.shared.windows.first else {
+            assertionFailure ("Invalid Configuration")
+            return
+        }
+        let tabBarController = UIStoryboard(name: "Main", bundle: .main)
+            .instantiateViewController(withIdentifier: "TabBarViewController")
+        
+        DispatchQueue.main.async {
+            window.rootViewController = tabBarController
         }
     }
 }
