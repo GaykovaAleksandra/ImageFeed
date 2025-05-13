@@ -1,4 +1,5 @@
 import UIKit
+import SwiftKeychainWrapper
 
 final class ProfileViewController: UIViewController {
     
@@ -41,6 +42,12 @@ final class ProfileViewController: UIViewController {
         updateAvatar()
         
         ProfileImageService.shared.fetchAvatarURL(into: avatarImageView)
+    }
+    
+    deinit {
+        if let observer = profileImageServiceObserver {
+            NotificationCenter.default.removeObserver(observer)
+        }
     }
     
     private func updateProfileDetails(profile: Profile) {
@@ -125,7 +132,18 @@ final class ProfileViewController: UIViewController {
     
     @objc
     private func didTapLogoutButton() {
-        UserDefaults.standard.removeObject(forKey: OAuth2TokenStorage.shared.tokenKey)
-        performSegue(withIdentifier: "logoutSegue" , sender: nil)
+        KeychainWrapper.standard.removeObject(forKey: OAuth2TokenStorage.shared.tokenKey)
+        presentAuthViewController()
+    }
+    
+    private func presentAuthViewController() {
+        let storyboard = UIStoryboard(name: "Main", bundle: nil)
+        
+        guard let auth = storyboard.instantiateViewController(withIdentifier: "AuthViewController") as? AuthViewController else {
+            return
+        }
+        
+        auth.modalPresentationStyle = .fullScreen
+        present(auth, animated: true, completion: nil)
     }
 }

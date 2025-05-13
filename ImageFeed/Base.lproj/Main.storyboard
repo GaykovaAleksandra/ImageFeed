@@ -121,6 +121,7 @@
         <!--Navigation Controller-->
         <scene sceneID="Dls-EH-RP9">
             <objects>
+                <placeholder placeholderIdentifier="IBFirstResponder" id="FZj-eb-aHo" userLabel="First Responder" customClass="UIResponder" sceneMemberID="firstResponder"/>
                 <navigationController automaticallyAdjustsScrollViewInsets="NO" id="roa-Gj-h7x" sceneMemberID="viewController">
                     <tabBarItem key="tabBarItem" title="" image="tab_editorial_active" id="qyW-Ne-iCP"/>
                     <toolbarItems/>
@@ -138,7 +139,6 @@
                         <segue destination="say-d2-KMQ" kind="relationship" relationship="rootViewController" id="KfD-RG-Kow"/>
                     </connections>
                 </navigationController>
-                <placeholder placeholderIdentifier="IBFirstResponder" id="FZj-eb-aHo" userLabel="First Responder" customClass="UIResponder" sceneMemberID="firstResponder"/>
             </objects>
             <point key="canvasLocation" x="-1602" y="-1080"/>
         </scene>
