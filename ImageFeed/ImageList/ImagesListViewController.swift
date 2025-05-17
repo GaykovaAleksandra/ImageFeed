@@ -19,6 +19,10 @@ final class ImagesListViewController: UIViewController {
         super.viewDidLoad()
         
         tableView.contentInset = UIEdgeInsets(top: 12, left: 0, bottom: 12, right: 0)
+        
+        let dateString = "2023-01-01T00:00:00Z"
+        let dateFormatter = DateFormatter()
+        dateFormatter.dateFormat = "yyyy-MM-dd'T'HH:mm:ssZ"
     }
     
     override func prepare(for segue: UIStoryboardSegue, sender: Any?) {
@@ -85,5 +89,11 @@ extension ImagesListViewController: UITableViewDataSource {
         
         configCell(for: imageListCell, with: indexPath)
         return imageListCell
+    }
+    
+    func tableView(_ tableView: UITableView, willDisplay cell: UITableViewCell, forRowAt indexPath: IndexPath) {
+        //       if indexPath.row + 1 == photos.count {
+        //        fetchPhotosNextPage()
+        //    }
     }
 }
