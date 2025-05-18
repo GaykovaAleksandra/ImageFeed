@@ -1,13 +1,10 @@
 import UIKit
 
 final class SingleImageViewController: UIViewController {
-    var image: UIImage? {
+    var imageURL: URL? {
         didSet {
-            guard isViewLoaded, let image else { return }
-            
-            imageView.image = image
-            imageView.frame.size = image.size
-            rescaleAndCenterImageInScrollView(image: image)
+            guard isViewLoaded, let imageURL else { return }
+            loadImage(from: imageURL)
         }
     }
     
@@ -20,11 +17,21 @@ final class SingleImageViewController: UIViewController {
         scrollView.minimumZoomScale = 0.1
         scrollView.maximumZoomScale = 1.25
         
-        guard let image else { return }
-        
-        imageView.image = image
-        imageView.frame.size = image.size
-        rescaleAndCenterImageInScrollView(image: image)
+        if let imageURL {
+            loadImage(from: imageURL)
+        }
+    }
+    
+    private func loadImage(from url: URL) {
+        DispatchQueue.global().async { [weak self] in
+            if let data = try? Data(contentsOf: url), let image = UIImage(data: data) {
+                DispatchQueue.main.async {
+                    self?.imageView.image = image
+                    self?.imageView.frame.size = image.size
+                    self?.rescaleAndCenterImageInScrollView(image: image)
+                }
+            }
+        }
     }
     
     @IBAction func didTapBackButton() {
@@ -32,9 +39,9 @@ final class SingleImageViewController: UIViewController {
     }
     
     @IBAction func didTapShareButton(_ sender: UIButton) {
-        guard let image else { return }
+        guard let imageURL else { return }
         let share = UIActivityViewController(
-            activityItems: [image],
+            activityItems: [imageURL],
             applicationActivities: nil
         )
         present(share, animated: true, completion: nil)

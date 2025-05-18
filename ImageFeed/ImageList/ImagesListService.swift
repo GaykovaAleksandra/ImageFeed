@@ -54,7 +54,14 @@ final class ImagesListService {
     private var lastLoadedPage = 0
     private var isLoading = false
     
-    // ...
+    private lazy var dateFormatter: DateFormatter = {
+        let formatter = DateFormatter()
+        formatter.dateStyle = .long
+        formatter.timeStyle = .none
+        formatter.dateFormat = "yyyy-MM-dd'T'HH:mm:ssZ"
+        formatter.locale = Locale(identifier: "ru_RU")
+        return formatter
+    }()
     
     func fetchPhotosNextPage() {
         guard !isLoading else { return }
@@ -92,7 +99,7 @@ final class ImagesListService {
                     Photo(
                         id: result.id,
                         size: CGSize(width: result.width, height: result.height),
-                        createdAt: DateFormatter().date(from: result.createdAt),
+                        createdAt: self?.dateFormatter.date(from: result.createdAt),
                         welcomeDescription: result.description,
                         thumbImageURL: result.urls.thumb,
                         largeImageURL: result.urls.full,
@@ -104,6 +111,8 @@ final class ImagesListService {
                     self?.photos.append(contentsOf: newPhotos)
                     self?.lastLoadedPage = nextPage
                     
+                    print("Загружено фотографий: \(self?.photos.count ?? 0)")
+                    
                     NotificationCenter.default.post(name: ImagesListService.didChangeNotification, object: nil)
                 }
             } catch {
@@ -112,6 +121,7 @@ final class ImagesListService {
             
         } .resume()
     }
-}
+    }
+
 
 
