@@ -82,6 +82,7 @@ final class SplashViewController: UIViewController {
                 alert.addAction(UIAlertAction(title: "Ок", style: .default))
                 
                 present(alert, animated: true)
+                
                 self.presentAuthViewController()
                 break
             }

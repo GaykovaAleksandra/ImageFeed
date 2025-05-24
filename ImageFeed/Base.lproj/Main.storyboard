@@ -64,6 +64,9 @@
                                                     </constraints>
                                                     <inset key="imageEdgeInsets" minX="0.0" minY="0.0" maxX="2.2250738585072014e-308" maxY="0.0"/>
                                                     <state key="normal" title=" " image="Active"/>
+                                                    <connections>
+                                                        <action selector="likeButtonClicked" destination="y01-8H-32L" eventType="touchUpInside" id="RV3-nz-UgL"/>
+                                                    </connections>
                                                 </button>
                                                 <label opaque="NO" userInteractionEnabled="NO" contentMode="left" horizontalHuggingPriority="251" verticalHuggingPriority="251" text="24 марта 2025" textAlignment="natural" lineBreakMode="tailTruncation" baselineAdjustment="alignBaselines" adjustsFontSizeToFit="NO" translatesAutoresizingMaskIntoConstraints="NO" id="oLV-RZ-B6g" userLabel="Date Label">
                                                     <rect key="frame" x="24" y="172" width="93" height="16"/>
@@ -121,7 +124,6 @@
         <!--Navigation Controller-->
         <scene sceneID="Dls-EH-RP9">
             <objects>
-                <placeholder placeholderIdentifier="IBFirstResponder" id="FZj-eb-aHo" userLabel="First Responder" customClass="UIResponder" sceneMemberID="firstResponder"/>
                 <navigationController automaticallyAdjustsScrollViewInsets="NO" id="roa-Gj-h7x" sceneMemberID="viewController">
                     <tabBarItem key="tabBarItem" title="" image="tab_editorial_active" id="qyW-Ne-iCP"/>
                     <toolbarItems/>
@@ -139,6 +141,7 @@
                         <segue destination="say-d2-KMQ" kind="relationship" relationship="rootViewController" id="KfD-RG-Kow"/>
                     </connections>
                 </navigationController>
+                <placeholder placeholderIdentifier="IBFirstResponder" id="FZj-eb-aHo" userLabel="First Responder" customClass="UIResponder" sceneMemberID="firstResponder"/>
             </objects>
             <point key="canvasLocation" x="-1602" y="-1080"/>
         </scene>
