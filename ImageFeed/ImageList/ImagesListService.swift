@@ -1,51 +1,5 @@
 import UIKit
 
-struct UrlsResult: Codable {
-    let raw: String
-    let full: String
-    let regular: String
-    let small: String
-    let thumb: String
-}
-
-struct PhotoResult: Codable {
-    let id: String
-    let createdAt: String
-    let updatedAt: String
-    let width: Int
-    let height: Int
-    let color: String
-    let blurHash: String
-    let likes: Int
-    let likedByUser: Bool
-    let description: String?
-    let urls: UrlsResult
-    
-    enum CodingKeys: String, CodingKey {
-        case id
-        case createdAt = "created_at"
-        case updatedAt = "updated_at"
-        case width
-        case height
-        case color
-        case blurHash = "blur_hash"
-        case likes
-        case likedByUser = "liked_by_user"
-        case description
-        case urls
-    }
-}
-
-struct Photo {
-    let id: String
-    let size: CGSize
-    let createdAt: Date?
-    let welcomeDescription: String?
-    let thumbImageURL: String
-    let largeImageURL: String
-    let isLiked: Bool
-}
-
 final class ImagesListService {
     private(set) var photos: [Photo] = []
     
@@ -58,7 +12,6 @@ final class ImagesListService {
         let formatter = DateFormatter()
         formatter.dateStyle = .long
         formatter.timeStyle = .none
-        formatter.dateFormat = "yyyy-MM-dd'T'HH:mm:ssZ"
         formatter.locale = Locale(identifier: "ru_RU")
         return formatter
     }()
@@ -121,7 +74,65 @@ final class ImagesListService {
             
         } .resume()
     }
+    
+    func changeLike(photoId: String, isLike: Bool, _ completion: @escaping (Result<Void, Error>) -> Void) {
+        guard let url = URL(string: "https://api.unsplash.com/photos/\(photoId)/like") else {
+            completion(.failure(NSError(domain: "Invalid URL", code: 0, userInfo: nil)))
+            return
+        }
+        
+        var request = URLRequest(url: url)
+        
+        request.httpMethod = isLike ? HTTPMethod.post.rawValue : HTTPMethod.delete.rawValue
+        request.setValue("Client-ID \(Constants.accessKey)", forHTTPHeaderField: "Authorization")
+        
+        request.httpBody = nil
+        
+        let task = URLSession.shared.dataTask(with: request) { data, response, error in
+            if let error {
+                completion(.failure(error))
+                return
+            }
+            
+            guard let httpResponse = response as? HTTPURLResponse else {
+                completion(.failure(NSError(domain: "InvalidResponse", code: 0, userInfo: nil)))
+                return
+            }
+            
+            if (200...299).contains(httpResponse.statusCode) {
+                DispatchQueue.main.async {
+                    if let index = self.photos.firstIndex(where: { $0.id == photoId }) {
+                        let photo = self.photos[index]
+                        
+                        let newPhoto = Photo(
+                            id: photoId,
+                            size: photo.size,
+                            createdAt: photo.createdAt,
+                            welcomeDescription: photo.welcomeDescription,
+                            thumbImageURL: photo.thumbImageURL,
+                            largeImageURL: photo.largeImageURL,
+                            isLiked: !photo.isLiked
+                        )
+                        self.photos = self.photos.withReplaced(itemAt: index, newValue: newPhoto)
+                    }
+                }
+                
+                completion(.success(()))
+                
+            } else {
+                completion(.failure(NSError(domain: "ServerError", code: httpResponse.statusCode, userInfo:nil)))
+            }
+        }
+        
+        task.resume()
     }
+}
 
-
-
+extension Array {
+    func withReplaced(itemAt index: Int, newValue: Element) -> [Element] {
+        var newArray = self
+        guard index >= 0 && index < newArray.count else { return newArray }
+        newArray[index] = newValue
+        return newArray
+    }
+}
