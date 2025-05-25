@@ -11,6 +11,10 @@ final class ProfileImageService {
     
     private(set) var avatarURL: String?
     
+    func clearProfileImage() {
+            avatarURL = nil
+        }
+    
     static let didChangeNotification = Notification.Name(rawValue: "ProfileImageProvideDidChange")
     
     func fetchAvatarURL(into imageView: UIImageView) {

@@ -1,20 +1,19 @@
 import UIKit
 
 final class ImagesListService {
+    
     private(set) var photos: [Photo] = []
+    
+    private let dateFormatter = ISO8601DateFormatter()
+    
+    func clearImages() {
+        photos.removeAll()
+    }
     
     static let didChangeNotification = Notification.Name(rawValue: "ImagesListServiceDidChange")
     
     private var lastLoadedPage = 0
     private var isLoading = false
-    
-    private lazy var dateFormatter: DateFormatter = {
-        let formatter = DateFormatter()
-        formatter.dateStyle = .long
-        formatter.timeStyle = .none
-        formatter.locale = Locale(identifier: "ru_RU")
-        return formatter
-    }()
     
     func fetchPhotosNextPage() {
         guard !isLoading else { return }
@@ -69,7 +68,8 @@ final class ImagesListService {
                     NotificationCenter.default.post(name: ImagesListService.didChangeNotification, object: nil)
                 }
             } catch {
-                print("Ошибка декодирования данных: \(error)")
+                let dataString = String(data: data, encoding: .utf8) ?? "недоступны"
+                print("[ImagesListService.fetchPhotosNextPage]: Ошибка декодирования данных: \(error). Данные: \(dataString)")
             }
             
         } .resume()
@@ -81,10 +81,17 @@ final class ImagesListService {
             return
         }
         
+        guard let token = OAuth2TokenStorage.shared.token else {
+            let error = NSError(domain: "TokenError", code: 401, userInfo: nil)
+            print("Token error - \(error.localizedDescription)")
+            completion(.failure(error))
+            return
+        }
+        
         var request = URLRequest(url: url)
         
         request.httpMethod = isLike ? HTTPMethod.post.rawValue : HTTPMethod.delete.rawValue
-        request.setValue("Client-ID \(Constants.accessKey)", forHTTPHeaderField: "Authorization")
+        request.setValue("Bearer \(token)", forHTTPHeaderField: "Authorization")
         
         request.httpBody = nil
         

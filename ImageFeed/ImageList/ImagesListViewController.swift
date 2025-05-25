@@ -16,7 +16,7 @@ final class ImagesListViewController: UIViewController {
         formatter.locale = Locale(identifier: "ru_RU")
         return formatter
     }()
-    
+
     override func viewDidLoad() {
         super.viewDidLoad()
         

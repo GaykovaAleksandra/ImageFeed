@@ -19,7 +19,11 @@ final class OAuth2Service {
         }
         
         var urlComponents = URLComponents()
+        
+        urlComponents.scheme = "https"
+        urlComponents.host = "unsplash.com"
         urlComponents.path = "/oauth/token"
+        
         urlComponents.queryItems = [
             URLQueryItem(name: "client_id", value: Constants.accessKey),
             URLQueryItem(name: "client_secret", value: Constants.secretKey),
@@ -28,7 +32,7 @@ final class OAuth2Service {
             URLQueryItem(name: "grant_type", value: "authorization_code")
         ]
         
-        guard let url = urlComponents.url(relativeTo: baseURL) else {
+        guard let url = urlComponents.url else {
             print("Ошибка: не удалось создать URL из компонентов: \(urlComponents)")
             return nil
         }

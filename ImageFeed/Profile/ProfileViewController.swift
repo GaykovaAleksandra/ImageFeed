@@ -9,6 +9,8 @@ final class ProfileViewController: UIViewController {
     private let descriptionLabel = UILabel()
     
     private let profileService = ProfileService.shared
+    private let profileLogout = ProfileLogoutService.shared
+    
     private var profileImageServiceObserver: NSObjectProtocol?
     
     override func viewDidLoad() {
@@ -132,18 +134,23 @@ final class ProfileViewController: UIViewController {
     
     @objc
     private func didTapLogoutButton() {
-        KeychainWrapper.standard.removeObject(forKey: OAuth2TokenStorage.shared.tokenKey)
-        presentAuthViewController()
-    }
-    
-    private func presentAuthViewController() {
-        let storyboard = UIStoryboard(name: "Main", bundle: nil)
         
-        guard let auth = storyboard.instantiateViewController(withIdentifier: "AuthViewController") as? AuthViewController else {
-            return
+        let alert = UIAlertController(title: "Пока, пока!", message: "Уверены, что хотите выйти?", preferredStyle: .alert)
+        
+        let logoutAction = UIAlertAction(title: "Да", style: .destructive) { [weak self] _ in
+            self?.profileLogout.logout()
         }
+       
+        let cancelAction = UIAlertAction(title: "Нет", style: .cancel)
         
-        auth.modalPresentationStyle = .fullScreen
-        present(auth, animated: true, completion: nil)
+        let buttonColor = UIColor.ypBlue
+        
+        logoutAction.setValue(buttonColor, forKey: "titleTextColor")
+        cancelAction.setValue(buttonColor, forKey: "titleTextColor")
+        
+        alert.addAction(logoutAction)
+        alert.addAction(cancelAction)
+        
+        present(alert, animated: true)
     }
 }

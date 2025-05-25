@@ -27,6 +27,10 @@ final class ProfileService {
     private init() {}
     
     private(set) var profile: Profile?
+        
+        func clearProfile() {
+            profile = nil
+        }
     
     func createGETRequest(url: URL, bearerToken: String) -> URLRequest {
         var request = URLRequest(url: url)
