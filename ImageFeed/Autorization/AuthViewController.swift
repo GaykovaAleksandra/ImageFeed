@@ -44,14 +44,14 @@ final class AuthViewController: UIViewController {
 
 extension AuthViewController: WebViewViewControllerDelegate {
     func webViewViewController(_ vc: WebViewViewController, didAuthenticateWithCode code: String) {
+        vc.dismiss(animated: true)
         
         UIBlockingProgressHUD.show()
         
         OAuth2Service.shared.fetchOAuthToken(code) { [weak self] result in
+            UIBlockingProgressHUD.dismiss()
             
             DispatchQueue.main.async {
-                
-                UIBlockingProgressHUD.dismiss()
                 
                 guard let self else { return }
                 
@@ -59,7 +59,7 @@ extension AuthViewController: WebViewViewControllerDelegate {
                 case .success(let token):
                     print("Аутентификация успешна, токен получен: \(token)")
                     KeychainWrapper.standard.set(token, forKey: "accessToken")
-                    self.dismiss(animated: true)
+                    self.delegate?.authViewController(self, didAuthenticateWithCode: token)
                 case .failure(let error):
                     print("Ошибка аутентификации: \(error)")
                     self.showErrorAlert()

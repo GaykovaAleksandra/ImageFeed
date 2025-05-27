@@ -9,7 +9,7 @@ final class ProfileLogoutService {
     
     private let profileService = ProfileService.shared
     private let profileImageService = ProfileImageService.shared
-    private let imagesListService = ImagesListService()
+    private let imagesListService = ImagesListService.shared
     private let oauth = OAuth2TokenStorage.shared
     
     func logout() {

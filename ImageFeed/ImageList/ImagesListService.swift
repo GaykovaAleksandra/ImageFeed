@@ -2,6 +2,9 @@ import UIKit
 
 final class ImagesListService {
     
+    static let shared = ImagesListService()
+    private init() {}
+    
     private(set) var photos: [Photo] = []
     
     private let dateFormatter = ISO8601DateFormatter()

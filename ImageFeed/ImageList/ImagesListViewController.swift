@@ -7,7 +7,7 @@ final class ImagesListViewController: UIViewController {
     @IBOutlet private var tableView: UITableView!
     
     var photos: [Photo] = []
-    private let imagesListService = ImagesListService()
+    private let imagesListService = ImagesListService.shared
     
     private lazy var dateFormatter: DateFormatter = {
         let formatter = DateFormatter()
@@ -20,14 +20,14 @@ final class ImagesListViewController: UIViewController {
     override func viewDidLoad() {
         super.viewDidLoad()
         
-        imagesListService.fetchPhotosNextPage()
-        
         tableView.contentInset = UIEdgeInsets(top: 12, left: 0, bottom: 12, right: 0)
         
         NotificationCenter.default.addObserver(self,
                                                selector: #selector(updateTable),
                                                name: ImagesListService.didChangeNotification,
                                                object: nil)
+        
+        imagesListService.fetchPhotosNextPage()
     }
     
     @objc private func updateTable() {
@@ -72,15 +72,17 @@ final class ImagesListViewController: UIViewController {
     func updateTableViewAnimated() {
         let oldCount = photos.count
         let newCount = imagesListService.photos.count
-        photos = imagesListService.photos
         
         if oldCount != newCount {
-            tableView.performBatchUpdates {
-                let indexPaths = (oldCount..<newCount).map { i in
-                    IndexPath(row: i, section: 0)
-                }
-                tableView.insertRows(at: indexPaths, with: .automatic)
-            } completion: { _ in }
+            photos = imagesListService.photos
+            DispatchQueue.main.async { [weak self] in
+                self?.tableView.performBatchUpdates {
+                    let indexPaths = (oldCount..<newCount).map { i in
+                        IndexPath(row: i, section: 0)
+                    }
+                    self?.tableView.insertRows(at: indexPaths, with: .automatic)
+                } completion: { _ in }
+            }
         }
     }
 }

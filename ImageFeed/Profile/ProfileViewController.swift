@@ -137,8 +137,9 @@ final class ProfileViewController: UIViewController {
         
         let alert = UIAlertController(title: "Пока, пока!", message: "Уверены, что хотите выйти?", preferredStyle: .alert)
         
-        let logoutAction = UIAlertAction(title: "Да", style: .destructive) { [weak self] _ in
+        let logoutAction = UIAlertAction(title: "Да", style: .default) { [weak self] _ in
             self?.profileLogout.logout()
+            self?.showSplashScreen()
         }
        
         let cancelAction = UIAlertAction(title: "Нет", style: .cancel)
@@ -152,5 +153,16 @@ final class ProfileViewController: UIViewController {
         alert.addAction(cancelAction)
         
         present(alert, animated: true)
+    }
+    
+    func showSplashScreen() {
+        guard let windowScene = UIApplication.shared.connectedScenes.first as? UIWindowScene,
+              let window = windowScene.windows.first else {
+            assertionFailure("Не удается открыть UIWindow")
+            return
+        }
+        
+        let splashViewController = SplashViewController()
+        window.rootViewController = splashViewController
     }
 }
