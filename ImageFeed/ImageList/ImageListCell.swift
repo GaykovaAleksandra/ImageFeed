@@ -15,16 +15,20 @@ final class ImageListCell: UITableViewCell {
     @IBOutlet weak var cellImageView: UIImageView!
     
     private var isLiked: Bool = false {
-            didSet {
-                updateLikeButton()
-            }
+        didSet {
+            updateLikeButton()
         }
+    }
     
     weak var delegate: ImageListCellDelegate?
     
+    override func awakeFromNib() {
+        super.awakeFromNib()
+        cellImageView.kf.indicatorType = .activity
+    }
+    
     override func prepareForReuse() {
         super.prepareForReuse()
-        
         cellImageView.kf.cancelDownloadTask()
         cellImageView.image = UIImage(named: "placeholder_photo")
     }
@@ -37,11 +41,23 @@ final class ImageListCell: UITableViewCell {
     }
     
     func setIsLiked(_ liked: Bool) {
-            isLiked = liked
+        isLiked = liked
+    }
+    
+    func configure(with imageURL: URL?, liked: Bool, dateText: String?) {
+        setIsLiked(liked)
+        
+        if let url = imageURL {
+            cellImageView.kf.setImage(with: url, placeholder: UIImage(named: "placeholder_photo"))
+        } else {
+            cellImageView.image = UIImage(named: "placeholder_photo")
         }
+        
+        dateLabel.text = dateText
+    }
     
     private func updateLikeButton() {
-            let likeImage = isLiked ? UIImage(named: "Active") : UIImage(named: "No Active")
-            likeButton.setImage(likeImage, for: .normal)
-        }
+        let imageName = isLiked ? "Active" : "No Active"
+        likeButton.setImage(UIImage(named: imageName), for: .normal)
+    }
 }

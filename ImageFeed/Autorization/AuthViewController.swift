@@ -44,7 +44,7 @@ final class AuthViewController: UIViewController {
 
 extension AuthViewController: WebViewViewControllerDelegate {
     func webViewViewController(_ vc: WebViewViewController, didAuthenticateWithCode code: String) {
-        vc.dismiss(animated: true)
+        navigationController?.popViewController(animated: true)
         
         UIBlockingProgressHUD.show()
         
@@ -58,8 +58,17 @@ extension AuthViewController: WebViewViewControllerDelegate {
                 switch result {
                 case .success(let token):
                     print("Аутентификация успешна, токен получен: \(token)")
-                    KeychainWrapper.standard.set(token, forKey: "accessToken")
+                    KeychainWrapper.standard.set(token, forKey: "oauthToken")
                     self.delegate?.authViewController(self, didAuthenticateWithCode: token)
+                    
+                    let splashVC = SplashViewController()
+                    
+                    if let window = UIApplication.shared.windows.first {
+                        window.rootViewController = splashVC
+                        window.makeKeyAndVisible()
+                    } else {
+                        self.present(splashVC, animated: true)
+                    }
                 case .failure(let error):
                     print("Ошибка аутентификации: \(error)")
                     self.showErrorAlert()

@@ -63,6 +63,8 @@ final class ImagesListService {
                 }
                 
                 DispatchQueue.main.async { [weak self] in
+                    
+//                    NotificationCenter.default.post(name: ImagesListService.didChangeNotification, object: nil)
                     self?.photos.append(contentsOf: newPhotos)
                     self?.lastLoadedPage = nextPage
                     

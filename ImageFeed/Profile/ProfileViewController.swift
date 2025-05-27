@@ -141,7 +141,6 @@ final class ProfileViewController: UIViewController {
             self?.profileLogout.logout()
             self?.showSplashScreen()
         }
-       
         let cancelAction = UIAlertAction(title: "Нет", style: .cancel)
         
         let buttonColor = UIColor.ypBlue
