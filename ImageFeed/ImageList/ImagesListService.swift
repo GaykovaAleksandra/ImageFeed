@@ -1,60 +1,22 @@
 import UIKit
 
-struct UrlsResult: Codable {
-    let raw: String
-    let full: String
-    let regular: String
-    let small: String
-    let thumb: String
-}
-
-struct PhotoResult: Codable {
-    let id: String
-    let createdAt: String
-    let updatedAt: String
-    let width: Int
-    let height: Int
-    let color: String
-    let blurHash: String
-    let likes: Int
-    let likedByUser: Bool
-    let description: String?
-    let urls: UrlsResult
-    
-    enum CodingKeys: String, CodingKey {
-        case id
-        case createdAt = "created_at"
-        case updatedAt = "updated_at"
-        case width
-        case height
-        case color
-        case blurHash = "blur_hash"
-        case likes
-        case likedByUser = "liked_by_user"
-        case description
-        case urls
-    }
-}
-
-struct Photo {
-    let id: String
-    let size: CGSize
-    let createdAt: Date?
-    let welcomeDescription: String?
-    let thumbImageURL: String
-    let largeImageURL: String
-    let isLiked: Bool
-}
-
 final class ImagesListService {
+    
+    static let shared = ImagesListService()
+    private init() {}
+    
     private(set) var photos: [Photo] = []
+    
+    private let dateFormatter = ISO8601DateFormatter()
+    
+    func clearImages() {
+        photos.removeAll()
+    }
     
     static let didChangeNotification = Notification.Name(rawValue: "ImagesListServiceDidChange")
     
     private var lastLoadedPage = 0
     private var isLoading = false
-    
-    // ...
     
     func fetchPhotosNextPage() {
         guard !isLoading else { return }
@@ -92,7 +54,7 @@ final class ImagesListService {
                     Photo(
                         id: result.id,
                         size: CGSize(width: result.width, height: result.height),
-                        createdAt: DateFormatter().date(from: result.createdAt),
+                        createdAt: self?.dateFormatter.date(from: result.createdAt),
                         welcomeDescription: result.description,
                         thumbImageURL: result.urls.thumb,
                         largeImageURL: result.urls.full,
@@ -104,14 +66,85 @@ final class ImagesListService {
                     self?.photos.append(contentsOf: newPhotos)
                     self?.lastLoadedPage = nextPage
                     
+                    print("Загружено фотографий: \(self?.photos.count ?? 0)")
+                    
                     NotificationCenter.default.post(name: ImagesListService.didChangeNotification, object: nil)
                 }
             } catch {
-                print("Ошибка декодирования данных: \(error)")
+                let dataString = String(data: data, encoding: .utf8) ?? "недоступны"
+                print("[ImagesListService.fetchPhotosNextPage]: Ошибка декодирования данных: \(error). Данные: \(dataString)")
             }
             
         } .resume()
     }
+    
+    func changeLike(photoId: String, isLike: Bool, _ completion: @escaping (Result<Void, Error>) -> Void) {
+        guard let url = URL(string: "https://api.unsplash.com/photos/\(photoId)/like") else {
+            completion(.failure(NSError(domain: "Invalid URL", code: 0, userInfo: nil)))
+            return
+        }
+        
+        guard let token = OAuth2TokenStorage.shared.token else {
+            let error = NSError(domain: "TokenError", code: 401, userInfo: nil)
+            print("Token error - \(error.localizedDescription)")
+            completion(.failure(error))
+            return
+        }
+        
+        var request = URLRequest(url: url)
+        
+        request.httpMethod = isLike ? HTTPMethod.post.rawValue : HTTPMethod.delete.rawValue
+        request.setValue("Bearer \(token)", forHTTPHeaderField: "Authorization")
+        
+        request.httpBody = nil
+        
+        let task = URLSession.shared.dataTask(with: request) { data, response, error in
+            if let error {
+                completion(.failure(error))
+                return
+            }
+            
+            guard let httpResponse = response as? HTTPURLResponse else {
+                completion(.failure(NSError(domain: "InvalidResponse", code: 0, userInfo: nil)))
+                return
+            }
+            
+            if (200...299).contains(httpResponse.statusCode) {
+                DispatchQueue.main.async {
+                    if let index = self.photos.firstIndex(where: { $0.id == photoId }) {
+                        let photo = self.photos[index]
+                        
+                        let newPhoto = Photo(
+                            id: photoId,
+                            size: photo.size,
+                            createdAt: photo.createdAt,
+                            welcomeDescription: photo.welcomeDescription,
+                            thumbImageURL: photo.thumbImageURL,
+                            largeImageURL: photo.largeImageURL,
+                            isLiked: !photo.isLiked
+                        )
+                        self.photos = self.photos.withReplaced(itemAt: index, newValue: newPhoto)
+                    }
+                }
+                
+                DispatchQueue.main.async {
+                    completion(.success(()))
+                }
+                
+            } else {
+                completion(.failure(NSError(domain: "ServerError", code: httpResponse.statusCode, userInfo:nil)))
+            }
+        }
+        
+        task.resume()
+    }
 }
 
-
+extension Array {
+    func withReplaced(itemAt index: Int, newValue: Element) -> [Element] {
+        var newArray = self
+        guard index >= 0 && index < newArray.count else { return newArray }
+        newArray[index] = newValue
+        return newArray
+    }
+}

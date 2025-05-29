@@ -82,6 +82,7 @@ final class SplashViewController: UIViewController {
                 alert.addAction(UIAlertAction(title: "Ок", style: .default))
                 
                 present(alert, animated: true)
+                
                 self.presentAuthViewController()
                 break
             }
@@ -91,7 +92,7 @@ final class SplashViewController: UIViewController {
 
 extension SplashViewController: AuthViewControllerDelegate {
     func authViewController(_ vc: AuthViewController, didAuthenticateWithCode code: String) {
-        vc.dismiss(animated: true)
+        navigationController?.popViewController(animated: true)
         
         UIBlockingProgressHUD.show()
         
@@ -104,7 +105,7 @@ extension SplashViewController: AuthViewControllerDelegate {
             case .success(let token):
                 print("Токен получен: \(token)")
                 
-                self.storage.token = token
+//                self.storage.token = token
                 self.fetchProfile(token)
                 
             case .failure(let error):

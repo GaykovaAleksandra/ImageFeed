@@ -9,38 +9,44 @@ final class ProfileViewController: UIViewController {
     private let descriptionLabel = UILabel()
     
     private let profileService = ProfileService.shared
+    private let profileLogout = ProfileLogoutService.shared
+    
     private var profileImageServiceObserver: NSObjectProtocol?
     
     override func viewDidLoad() {
         super.viewDidLoad()
-        
+        setupUI()
+        setupBindings()
+        updateProfile()
+    }
+    
+    private func setupUI() {
+        view.backgroundColor = .ypBlack
+        avatarImage()
+        name()
+        loginName()
+        description()
+        logout()
+    }
+    
+    private func setupBindings() {
         profileImageServiceObserver = NotificationCenter.default.addObserver(
             forName: ProfileImageService.didChangeNotification,
             object: nil,
             queue: .main
         ) { [weak self] _ in
-            guard let self else { return }
-            self.updateAvatar()
+            self?.updateAvatar()
+        }
+    }
+    
+    private func updateProfile() {
+        if let profile = profileService.profile {
+            updateProfileDetails(profile: profile)
+        } else {
+            print("Профиль ещё не загружен")
         }
         
-        DispatchQueue.main.async {
-            if let profile = self.profileService.profile {
-                self.updateProfileDetails(profile: profile)
-            } else {
-                print("Профиль еще не загружен")
-            }
-        }
-        
-        view.backgroundColor = .ypBlack
-        
-        avatarImage()
-        name()
-        loginName()
-        description()
-        
-        logout()
         updateAvatar()
-        
         ProfileImageService.shared.fetchAvatarURL(into: avatarImageView)
     }
     
@@ -115,11 +121,11 @@ final class ProfileViewController: UIViewController {
     }
     
     private func logout() {
-        let logoutButton = UIButton.systemButton(
-            with: UIImage(named: "Exit")!,
-            target: nil,
-            action: #selector(Self.didTapLogoutButton)
-        )
+        guard let exitImage = UIImage(named: "Exit") else {
+            assertionFailure("Не найдена иконка Exit")
+            return
+        }
+        let logoutButton = UIButton.systemButton(with: exitImage, target: nil, action: #selector(Self.didTapLogoutButton))
         
         logoutButton.translatesAutoresizingMaskIntoConstraints = false
         view.addSubview(logoutButton)
@@ -132,18 +138,34 @@ final class ProfileViewController: UIViewController {
     
     @objc
     private func didTapLogoutButton() {
-        KeychainWrapper.standard.removeObject(forKey: OAuth2TokenStorage.shared.tokenKey)
-        presentAuthViewController()
+        
+        let alert = UIAlertController(title: "Пока, пока!", message: "Уверены, что хотите выйти?", preferredStyle: .alert)
+        
+        let logoutAction = UIAlertAction(title: "Да", style: .default) { [weak self] _ in
+            self?.profileLogout.logout()
+            self?.showSplashScreen()
+        }
+        let cancelAction = UIAlertAction(title: "Нет", style: .cancel)
+        
+        let buttonColor = UIColor.ypBlue
+        
+        logoutAction.setValue(buttonColor, forKey: "titleTextColor")
+        cancelAction.setValue(buttonColor, forKey: "titleTextColor")
+        
+        alert.addAction(logoutAction)
+        alert.addAction(cancelAction)
+        
+        present(alert, animated: true)
     }
     
-    private func presentAuthViewController() {
-        let storyboard = UIStoryboard(name: "Main", bundle: nil)
-        
-        guard let auth = storyboard.instantiateViewController(withIdentifier: "AuthViewController") as? AuthViewController else {
+    func showSplashScreen() {
+        guard let windowScene = UIApplication.shared.connectedScenes.first as? UIWindowScene,
+              let window = windowScene.windows.first else {
+            assertionFailure("Не удается открыть UIWindow")
             return
         }
         
-        auth.modalPresentationStyle = .fullScreen
-        present(auth, animated: true, completion: nil)
+        let splashViewController = SplashViewController()
+        window.rootViewController = splashViewController
     }
 }
