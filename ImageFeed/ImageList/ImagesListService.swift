@@ -63,8 +63,6 @@ final class ImagesListService {
                 }
                 
                 DispatchQueue.main.async { [weak self] in
-                    
-//                    NotificationCenter.default.post(name: ImagesListService.didChangeNotification, object: nil)
                     self?.photos.append(contentsOf: newPhotos)
                     self?.lastLoadedPage = nextPage
                     
@@ -129,7 +127,9 @@ final class ImagesListService {
                     }
                 }
                 
-                completion(.success(()))
+                DispatchQueue.main.async {
+                    completion(.success(()))
+                }
                 
             } else {
                 completion(.failure(NSError(domain: "ServerError", code: httpResponse.statusCode, userInfo:nil)))

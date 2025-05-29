@@ -15,34 +15,38 @@ final class ProfileViewController: UIViewController {
     
     override func viewDidLoad() {
         super.viewDidLoad()
-        
+        setupUI()
+        setupBindings()
+        updateProfile()
+    }
+    
+    private func setupUI() {
+        view.backgroundColor = .ypBlack
+        avatarImage()
+        name()
+        loginName()
+        description()
+        logout()
+    }
+    
+    private func setupBindings() {
         profileImageServiceObserver = NotificationCenter.default.addObserver(
             forName: ProfileImageService.didChangeNotification,
             object: nil,
             queue: .main
         ) { [weak self] _ in
-            guard let self else { return }
-            self.updateAvatar()
+            self?.updateAvatar()
+        }
+    }
+    
+    private func updateProfile() {
+        if let profile = profileService.profile {
+            updateProfileDetails(profile: profile)
+        } else {
+            print("Профиль ещё не загружен")
         }
         
-        DispatchQueue.main.async {
-            if let profile = self.profileService.profile {
-                self.updateProfileDetails(profile: profile)
-            } else {
-                print("Профиль еще не загружен")
-            }
-        }
-        
-        view.backgroundColor = .ypBlack
-        
-        avatarImage()
-        name()
-        loginName()
-        description()
-        
-        logout()
         updateAvatar()
-        
         ProfileImageService.shared.fetchAvatarURL(into: avatarImageView)
     }
     
@@ -117,11 +121,11 @@ final class ProfileViewController: UIViewController {
     }
     
     private func logout() {
-        let logoutButton = UIButton.systemButton(
-            with: UIImage(named: "Exit")!,
-            target: nil,
-            action: #selector(Self.didTapLogoutButton)
-        )
+        guard let exitImage = UIImage(named: "Exit") else {
+            assertionFailure("Не найдена иконка Exit")
+            return
+        }
+        let logoutButton = UIButton.systemButton(with: exitImage, target: nil, action: #selector(Self.didTapLogoutButton))
         
         logoutButton.translatesAutoresizingMaskIntoConstraints = false
         view.addSubview(logoutButton)
