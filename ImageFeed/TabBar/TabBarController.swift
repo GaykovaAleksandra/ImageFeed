@@ -5,7 +5,11 @@ class TabBarController: UITabBarController {
         super.awakeFromNib()
         let storyboard = UIStoryboard(name: "Main", bundle: nil)
         
-        let imageListViewController = storyboard.instantiateViewController(withIdentifier: "ImagesListViewController")
+        guard let imageListViewController = storyboard.instantiateViewController(withIdentifier: "ImagesListViewController") as? ImagesListViewController else { return }
+        
+        let imageListPresenter = ImageListPresenter()
+        imageListViewController.presenter = imageListPresenter
+        imageListPresenter.view = imageListViewController
         
         let profileViewController = ProfileViewController()
         profileViewController.tabBarItem = UITabBarItem(

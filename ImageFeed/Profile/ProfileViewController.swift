@@ -21,10 +21,11 @@ final class ProfileViewController: UIViewController, ProfileViewControllerProtoc
     private let profileLogout = ProfileLogoutService.shared
     private var profileImageServiceObserver: NSObjectProtocol?
     
-    //    func configure(_ presenter: ProfilePresenterProtocol) {
-    //        self.presenter = presenter
-    //        presenter.view = self
-    //    }
+    func configure(_ presenter: ProfilePresenterProtocol) {
+            self.presenter = presenter
+            self.presenter?.view = self
+        }
+        
     
     override func viewDidLoad() {
         super.viewDidLoad()
@@ -32,7 +33,11 @@ final class ProfileViewController: UIViewController, ProfileViewControllerProtoc
         setupUI()
         setupBindings()
         
-        presenter = ProfilePresenter(view: self)
+        if presenter == nil {
+                    let defaultPresenter = ProfilePresenter(view: self)
+                    self.presenter = defaultPresenter
+                }
+        
         updateProfile()
         
     }
