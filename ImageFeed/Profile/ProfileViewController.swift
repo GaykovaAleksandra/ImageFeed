@@ -1,23 +1,45 @@
 import UIKit
 import SwiftKeychainWrapper
 
-final class ProfileViewController: UIViewController {
+public protocol ProfileViewControllerProtocol {
+    var presenter: ProfilePresenterProtocol? { get set }
+    
+    func updateAvatar()
+    func updateProfileDetails(profile: Profile)
+    func showSplashScreen()
+}
+
+final class ProfileViewController: UIViewController, ProfileViewControllerProtocol {
+    var presenter: ProfilePresenterProtocol?
     
     private let avatarImageView = UIImageView(image: UIImage(named: "Photo"))
     private let nameLabel = UILabel()
     private let loginNameLabel = UILabel()
     private let descriptionLabel = UILabel()
     
-    private let profileService = ProfileService.shared
+
     private let profileLogout = ProfileLogoutService.shared
-    
     private var profileImageServiceObserver: NSObjectProtocol?
+    
+    func configure(_ presenter: ProfilePresenterProtocol) {
+            self.presenter = presenter
+            self.presenter?.view = self
+        }
+        
     
     override func viewDidLoad() {
         super.viewDidLoad()
+        
         setupUI()
         setupBindings()
+        
+        if presenter == nil {
+                    let defaultPresenter = ProfilePresenter(view: self)
+                    self.presenter = defaultPresenter
+                }
+        
         updateProfile()
+        
     }
     
     private func setupUI() {
@@ -40,13 +62,7 @@ final class ProfileViewController: UIViewController {
     }
     
     private func updateProfile() {
-        if let profile = profileService.profile {
-            updateProfileDetails(profile: profile)
-        } else {
-            print("Профиль ещё не загружен")
-        }
-        
-        updateAvatar()
+        presenter?.updateProfile()
         ProfileImageService.shared.fetchAvatarURL(into: avatarImageView)
     }
     
@@ -56,20 +72,21 @@ final class ProfileViewController: UIViewController {
         }
     }
     
-    private func updateProfileDetails(profile: Profile) {
+    func updateProfileDetails(profile: Profile) {
         nameLabel.text = profile.name
         loginNameLabel.text = profile.loginName
         descriptionLabel.text = profile.bio ?? ""
     }
     
-    private func updateAvatar() {
+    func updateAvatar() {
         guard
             let profileImageURL = ProfileImageService.shared.avatarURL,
             let url = URL(string: profileImageURL)
         else { return }
     }
     
-    private func avatarImage() {
+    
+    func avatarImage() {
         avatarImageView.translatesAutoresizingMaskIntoConstraints = false
         view.addSubview(avatarImageView)
         
@@ -84,7 +101,7 @@ final class ProfileViewController: UIViewController {
         avatarImageView.heightAnchor.constraint(equalToConstant: 70).isActive = true
     }
     
-    private func name() {
+    func name() {
         nameLabel.translatesAutoresizingMaskIntoConstraints = false
         view.addSubview(nameLabel)
         
@@ -96,7 +113,7 @@ final class ProfileViewController: UIViewController {
         nameLabel.topAnchor.constraint(equalTo: avatarImageView.bottomAnchor, constant: 8).isActive = true
     }
     
-    private func loginName() {
+    func loginName() {
         loginNameLabel.translatesAutoresizingMaskIntoConstraints = false
         view.addSubview(loginNameLabel)
         
@@ -108,7 +125,7 @@ final class ProfileViewController: UIViewController {
         loginNameLabel.topAnchor.constraint(equalTo: nameLabel.bottomAnchor, constant: 8).isActive = true
     }
     
-    private func description() {
+    func description() {
         descriptionLabel.translatesAutoresizingMaskIntoConstraints = false
         view.addSubview(descriptionLabel)
         
@@ -120,7 +137,7 @@ final class ProfileViewController: UIViewController {
         descriptionLabel.topAnchor.constraint(equalTo: loginNameLabel.bottomAnchor, constant: 8).isActive = true
     }
     
-    private func logout() {
+    func logout() {
         guard let exitImage = UIImage(named: "Exit") else {
             assertionFailure("Не найдена иконка Exit")
             return
@@ -142,8 +159,7 @@ final class ProfileViewController: UIViewController {
         let alert = UIAlertController(title: "Пока, пока!", message: "Уверены, что хотите выйти?", preferredStyle: .alert)
         
         let logoutAction = UIAlertAction(title: "Да", style: .default) { [weak self] _ in
-            self?.profileLogout.logout()
-            self?.showSplashScreen()
+            self?.presenter?.didTapLogout()
         }
         let cancelAction = UIAlertAction(title: "Нет", style: .cancel)
         
