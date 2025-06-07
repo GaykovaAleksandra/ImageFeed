@@ -1,6 +1,6 @@
 import UIKit
 
-struct Profile {
+public struct Profile {
     let username: String
     let firstName: String?
     let lastName: String?
